@@ -6,13 +6,16 @@ var logger = require('morgan');
 var helmet = require('helmet');
 var cors = require('cors');
 var Ddos = require('ddos');
-var ddos = new Ddos({burst: 5, limit: 30});
+var ddos = new Ddos({
+  burst: 5,
+  limit: 30
+});
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-    
+
 var app = express();
-    
+
 app.use(cors());
 app.use(ddos.express);
 app.use(logger('dev'));

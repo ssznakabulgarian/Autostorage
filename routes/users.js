@@ -18,7 +18,7 @@ function isUsernameValid(name) {
   return !(/\s/.test(name));
 }
 
-function isPasswordValid(pass){
+function isPasswordValid(pass) {
   return !(/\s/.test(pass));
 }
 
@@ -97,7 +97,7 @@ router.post('/login', async function (req, res) {
   } else if (!isEmpty(req.body.email) && !isEmailValid(req.body.email)) {
     result.error.push("invalidEmail");
   }
-  if (!isEmpty(req.body.username)  && !isUsernameValid(req.body.username)) result.error.push("invalidUsername");
+  if (!isEmpty(req.body.username) && !isUsernameValid(req.body.username)) result.error.push("invalidUsername");
   if (!isPasswordValid(req.body.password)) result.error.push("invalidPassword");
 
   if (result.error.length == 0) {
@@ -140,7 +140,7 @@ router.post('/logout', async function (req, res) {
     data: null
   };
   if (!isRequestValid(req, 'logout')) result.error.push("invalidRequest");
-  
+
   if (result.error.length == 0) {
     var row = await database.oneOrNone("SELECT * FROM users WHERE token=$(token)", req.body);
     if (row) {
@@ -170,11 +170,11 @@ router.post('/read', async function (req, res) {
 
   if (result.error.length == 0) {
     var row = await database.oneOrNone("SELECT * FROM users WHERE token=$(token)", req.body);
-    if(row){
+    if (row) {
       result.data = row;
       delete result.data.password;
       delete result.data.failed_logins;
-    }else{
+    } else {
       result.error.push("invalidToken");
     }
   }
@@ -185,7 +185,10 @@ router.post('/update', async function (req, res) {
   var result = {
     error: [],
     data: {
-      name: {first, last},
+      name: {
+        first,
+        last
+      },
       username,
       email,
       password,
@@ -194,34 +197,34 @@ router.post('/update', async function (req, res) {
   };
   if (!isRequestValid(req, 'update')) result.error.push("invalidRequest");
   if (!isEmpty(req.body.username) && !isUsernameAvailable(req.body.username)) result.error.push("usernameTaken");
-  if (!isEmpty(req.body.username)  && !isUsernameValid(req.body.username)) result.error.push("invalidUsername");
+  if (!isEmpty(req.body.username) && !isUsernameValid(req.body.username)) result.error.push("invalidUsername");
   if (!isEmpty(req.body.email) && !isEmailAvailable(req.body.email)) result.error.push("emailTaken");
   if (!isEmpty(req.body.email) && !isEmailValid(req.body.email)) result.error.push("invalidEmail");
-  if (!isEmpty(req.body.age) && (typeof(req.body.age)!="number" || req.body.age>120 || req.body.age<3)) result.error.push("invalidAge"); 
+  if (!isEmpty(req.body.age) && (typeof (req.body.age) != "number" || req.body.age > 120 || req.body.age < 3)) result.error.push("invalidAge");
   if (!isEmpty(req.body.name.first) && !isEmpty(req.body.name.last) && !isNameValid(req.body.name.first + ' ' + req.body.name.last)) result.error.push("invalidName");
   if (!isEmpty(req.body.password) && !isPasswordValid(req.body.password)) result.error.push("invalidPassword");
 
   if (result.error.length == 0) {
-    if(!isEmpty(req.body.username)){
+    if (!isEmpty(req.body.username)) {
       await database.none("UPDATE users SET username=$(useranme) WHERE token=$token", req.body);
       result.data.username = req.body.username;
     }
-    if(!isEmpty(req.body.email)){
+    if (!isEmpty(req.body.email)) {
       await database.none("UPDATE users SET email=$(email) WHERE token=$token", req.body);
       result.data.email = req.body.email;
     }
-    if(!isEmpty(req.body.age)){
+    if (!isEmpty(req.body.age)) {
       await database.none("UPDATE users SET age=$(age) WHERE token=$token", req.body);
       result.data.age = req.body.age;
     }
-    if(!isEmpty(req.body.name.first) && !isEmpty(req.body.name.last)){
+    if (!isEmpty(req.body.name.first) && !isEmpty(req.body.name.last)) {
       await database.none("UPDATE users SET first_name=$(name.first) last_name=$(name.last) WHERE token=$token", req.body);
       result.data.name = req.body.name;
     }
-    if(!isEmpty(req.body.password)){
+    if (!isEmpty(req.body.password)) {
       req.body.password = await encryptor.cryptPassword(req.body.password);
       await database.none("UPDATE users SET password=$(password)", req.body);
-      result.data.password="passwordUpdated";
+      result.data.password = "passwordUpdated";
     }
   }
   res.json(result);
