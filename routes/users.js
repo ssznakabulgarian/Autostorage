@@ -130,7 +130,6 @@ router.post('/login', async function (req, res) {
       result.error.push("wrongUsernameOrEmail");
     }
   }
-
   res.json(result);
 })
 
