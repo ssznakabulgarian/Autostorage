@@ -1,6 +1,5 @@
 var request = require('request');
-module.exports = {
-    createRequest: (url, data, callback) => {
+module.exports.createRequest: (url, data, callback) => {
         var options = {
             url: url,
             body: data,
@@ -9,4 +8,3 @@ module.exports = {
         }
         request(options, callback);
     }
-};
