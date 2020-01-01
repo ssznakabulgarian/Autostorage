@@ -1,0 +1,48 @@
+<html>
+
+<head>
+
+</head>
+
+<body>
+    <button id="btn1">test register</button>
+    <button id="btn2">test login</button>
+    <script type="text/javascript" src="javascripts/http-request-function.js"></script>
+    <script type="text/javascript">
+        var data = {
+            name: {
+                first: 'George',
+                last: 'Baldjiev'
+            },
+            age: 15,
+            username: 'ssznakabulgarian',
+            email: 'gbaldjiev2004@gmail.com',
+            password: '987412365'
+        }
+
+        btn1.onclick = function () {
+            request("/users/register", null, data, (success, result, error, e) => {
+                console.log("success: " + success);
+                console.log("result: ");
+                console.log(result);
+                console.log("error: ");
+                console.log(error);
+                console.log("event: ");
+                console.log(e);
+            });
+        };
+        btn2.onclick = function () {
+            request("/users/login", null, data, (success, result, error, e) => {
+                console.log("success: " + success);
+                console.log("result: ");
+                console.log(result);
+                console.log("error: ");
+                console.log(error);
+                console.log("event: ");
+                console.log(e);
+            });
+        };
+    </script>
+</body>
+
+</html>
