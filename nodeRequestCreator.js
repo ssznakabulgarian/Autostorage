@@ -1,5 +1,5 @@
 var request = require('request');
-module.exports.createRequest: (url, data, callback) => {
+module.exports.createRequest= function(url, data, callback){
         var options = {
             url: url,
             body: data,
