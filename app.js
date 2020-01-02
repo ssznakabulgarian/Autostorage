@@ -8,7 +8,7 @@ var cors = require('cors');
 var Ddos = require('ddos');
 var ddos = new Ddos({
   burst: 5,
-  limit: 30
+  limit: 50
 });
 
 var indexRouter = require('./routes/index');
