@@ -1,7 +1,7 @@
 var nodemailer = require('nodemailer');
 var serverEmailUser = {
     user: 'easy-store@gmail.com',
-    pass: '#1e4a7s8y9s5t6o2r3e@9e8a7s4y5s6t3o2r1e!'
+    pass: '#1a4u7t8o9s5t6o2r3e@9a8u7t4o5s6t3o2r1e!'
 };
 
 module.exports.sendEmail = function (subject, emails, content) {
