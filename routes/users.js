@@ -32,7 +32,7 @@ function isRequestValid(req, actionType) {
     case 'login':
       return !isEmpty(req.body.username) && !isEmpty(req.body.password);
     case 'register':
-      return !isEmpty(req.body.name.first) && !isEmpty(req.body.name.last) && !isEmpty(req.body.username) && !isEmpty(req.body.email) && !isEmpty(req.body.age) && !isEmpty(req.body.password);
+      return !isEmpty(req.body.name.first) && !isEmpty(req.body.name.last) && !isEmpty(req.body.username) && !isEmpty(req.body.email) && !isEmpty(req.body.password);
     case 'logout':
       return !isEmpty(req.body.token);
     case 'read':
@@ -74,12 +74,12 @@ router.post('/register', async function (req, res) {
 
   if (result.error.length == 0) {
     req.body.password = await encryptor.cryptPassword(req.body.password);
-    await database.none("INSERT INTO users(first_name, last_name, username, password, email, age) VALUES($(name.first), $(name.last), $(username), $(password), $(email), $(age))", req.body);
-    result.data = ({
+    await database.none("INSERT INTO users(first_name, last_name, username, password, email) VALUES($(name.first), $(name.last), $(username), $(password), $(email))", req.body);
+    result.data = {
       name: req.body.name,
       username: req.body.username,
       email: req.body.email
-    });
+    };
   }
 
   res.json(result);
@@ -199,7 +199,7 @@ router.post('/update', async function (req, res) {
   if (!isEmpty(req.body.username) && !isUsernameValid(req.body.username)) result.error.push("invalidUsername");
   if (!isEmpty(req.body.email) && !isEmailAvailable(req.body.email)) result.error.push("emailTaken");
   if (!isEmpty(req.body.email) && !isEmailValid(req.body.email)) result.error.push("invalidEmail");
-  if (!isEmpty(req.body.age) && (typeof (req.body.age) != "number" || req.body.age > 120 || req.body.age < 3)) result.error.push("invalidAge");
+  if (!isEmpty(req.body.age) && (typeof (req.body.age) != "number" || req.body.age > 120 || req.body.age < 5)) result.error.push("invalidAge");
   if (!isEmpty(req.body.name.first) && !isEmpty(req.body.name.last) && !isNameValid(req.body.name.first + ' ' + req.body.name.last)) result.error.push("invalidName");
   if (!isEmpty(req.body.password) && !isPasswordValid(req.body.password)) result.error.push("invalidPassword");
 

@@ -32,14 +32,14 @@
             });
         };
         btn2.onclick = function () {
-            request("/users/login", null, data, (success, result, error, e) => {
+            request("/users/login", null, data, (success, result, error, event) => {
                 console.log("success: " + success);
                 console.log("result: ");
                 console.log(result);
                 console.log("error: ");
                 console.log(error);
                 console.log("event: ");
-                console.log(e);
+                console.log(event);
             });
         };
     </script>
