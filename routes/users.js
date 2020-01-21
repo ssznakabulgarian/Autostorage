@@ -55,8 +55,6 @@ async function isEmailAvaliable(req) {
 }
 
 router.get('/', function (req, res) {
-  res.send('error: no action specified');
-  res.send('redirecting...');
   res.redirect('../');
 })
 

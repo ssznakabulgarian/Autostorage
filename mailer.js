@@ -1,7 +1,7 @@
 var nodemailer = require('nodemailer');
 var serverEmailUser = {
-    user: 'easy-store@gmail.com',
-    pass: '#1a4u7t8o9s5t6o2r3e@9a8u7t4o5s6t3o2r1e!'
+    user: 'mailer@quizbattle.net',
+    pass: '8Dw2LJ2y!B,B'
 };
 
 module.exports.sendEmail = function (subject, emails, content) {
@@ -11,8 +11,8 @@ module.exports.sendEmail = function (subject, emails, content) {
         data: null
     };
     var transporter = nodemailer.createTransport({
-        host: "smtp.gmail.host",
-        port: 587,
+        host: "mail.quizbattle.net",
+        port: 26,
         secure: true, // use TLS
         auth: serverEmailUser
       });

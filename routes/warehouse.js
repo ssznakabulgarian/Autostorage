@@ -28,12 +28,11 @@ function isRequestValid(req, actionType) {
 }
 
 router.get('/', function (req, res) {
-    res.send('error: no action specified');
-    res.send('redirecting...');
     res.redirect('../');
 })
 
-router.post('/import', async function (req, res) {
+
+router.post('/import', async function (req, res, next) {
     var result = {
         error: [],
         data: null
@@ -50,9 +49,10 @@ router.post('/import', async function (req, res) {
         }
     }
     res.json(result);
+    next();
 })
 
-router.post('/export', async function (req, res) {
+router.post('/export', async function (req, res, next) {
     var result = {
         error: [],
         data: null
@@ -64,7 +64,10 @@ router.post('/export', async function (req, res) {
         await database.none("UPDATE storageUnits SET status='reserved' WHERE address=$(item.address)", req.body);
     }
     res.json(result);
+    next();
 })
+
+router.post()
 
 router.post('/list', async function (req, res) {
     var result = {
