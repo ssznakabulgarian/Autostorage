@@ -67,8 +67,6 @@ router.post('/export', async function (req, res, next) {
     next();
 })
 
-router.post()
-
 router.post('/list', async function (req, res) {
     var result = {
         error: [],

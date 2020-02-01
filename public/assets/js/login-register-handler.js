@@ -1,9 +1,49 @@
-var loginButton = document.getElementById("login-button");
+var localStorge, loginButton, registerButton;
 
-loginButton.addEventListener("click", function(e){
-    var data={
-        username: getElementById("username-input").value,
-        password: getElementById("password-input").value
-    };
-    //send login request!
-});
+loginButton = document.getElementById("login-button");
+registerButton = document.getElementById("register-button");
+localStorage = window.localStorage;
+
+if(loginButton){
+    loginButton.addEventListener("click", function (e) {
+        e.preventDefault();
+        var data = {
+            username: document.getElementById("username-input").value,
+            password: document.getElementById("password-input").value
+        };
+        request("/users/login", null, data, function (success, result, error, e) {
+            if (success) {
+                console.log(result);
+                localStorage.setItem('token', result.token);
+            } else {
+                handleErrors(error);
+            }
+        });
+        return false;
+    });
+}
+
+if(registerButton){
+    registerButton.addEventListener("click", function (e){
+        e.preventDefault();
+
+        var data = {
+            name: {
+                first: document.getElementById("first-name-input").value,
+                last: document.getElementById("last-name-input").value
+            },
+            username: document.getElementById("username-input").value,
+            password: document.getElementById("password-input").value,
+            email: document.getElementById("email-input").value
+        };
+        request("/users/register", null, data, function (success, result, error, e) {
+            if (success) {
+                console.log(result);
+                localStorage.setItem('token', result.token);
+            } else {
+                handleErrors(error);
+            }
+        });
+        return false;
+    });
+}

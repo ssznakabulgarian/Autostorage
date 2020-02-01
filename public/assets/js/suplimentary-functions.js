@@ -30,3 +30,38 @@ function request(url, urlParams, data, onLoad /*(bool success, Object result, St
         request.send();
     }
 }
+
+function handleErrors(errors) {
+    for (var i = 0; i < errors.length; i++) {
+        switch (errors[i]) {
+            case 'invalidRequest':
+                break;
+            case 'invalidUsername':
+                break;
+            case 'invalidEmail':
+                break;
+            case 'invalidAge':
+                break;
+            case 'invalidPassword':
+                break;
+            case 'invalidName':
+                break;
+            case 'invalidToken':
+                break;
+            case 'wrongPassword':
+                break;
+            case 'wrongEmail':
+                break;
+            case 'wrongUsername':
+                break;
+            case 'usernameTaken':
+                break;
+            case 'emailTaken':
+                break;
+            case 'tooManyFailedLogins':
+                break;
+            default:
+                break;
+        }
+    }
+}
