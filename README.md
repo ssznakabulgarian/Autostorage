@@ -2,15 +2,21 @@
 
 * ## TODOs:
     * ### hardware side node server
-        * receiving operations
+        * pulling operations list form main server
         * events for operations
+        * connection with arduino -- DONE
     * ### connection with the hardware side node server
         * sending operations
         * handling events -- DONE
     * ### admin actions
     * ### pages
-        * testing (at first)
+        * testing (at first) -- DONE
         * UI
+            * login and regiser pages -- DONE
+            * dashboard
+            * buying services
+            * swiching between views (ie. login/regiser to main page)
+
 * ## Done:
      *  ### warehouse stuffs
         * adding a pallet
@@ -26,3 +32,4 @@
         * ddos protection
         * passing CORS policy
         * time logging
+    * ### minor fixes on the above mentioned
