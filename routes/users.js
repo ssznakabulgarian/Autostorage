@@ -110,6 +110,7 @@ router.post('/login', async function (req, res) {
             token: token
           };
           await database.one("SELECT reset_failed_logins($(id));", row);
+          //res.redirect('../dashboard.html');
         } else {
           result.error.push("wrongPassword");
           await database.one("SELECT failed_login($(id));", row);

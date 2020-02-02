@@ -1,16 +1,24 @@
 function request(url, urlParams, data, onLoad /*(bool success, Object result, String error, Event e)*/ ) {
     var request = new XMLHttpRequest();
     request.addEventListener("load", (e) => {
-        try {
-            var result = JSON.parse(request.responseText);
-        } catch (error) {
-            onLoad(false, null, "Invlaid server response: " + error, e);
-            return;
-        }
-        if (result && result.error && result.error.length > 0) {
-            onLoad(false, null, result.error, e);
-        } else {
-            onLoad(true, result.data, null, e);
+        if(request.getResponseHeader('Content-Type')=='application/json; charset=utf-8'){
+            try {
+                var result = JSON.parse(request.responseText);
+            } catch (error) {
+                onLoad(false, null, ["invlaidServerResponse", error] , e);
+                return;
+            }
+            if (result && result.error && result.error.length > 0) {
+                onLoad(false, null, result.error, e);
+            } else {
+                onLoad(true, result.data, null, e);
+            }
+        }else{
+            if(request.responseText){
+                onLoad(true, request.responseText, null, e);
+            }else{
+                onLoad(false, null, 'emptyResponse', e);
+            }
         }
     });
     request.addEventListener("error", (e) => {
@@ -31,10 +39,26 @@ function request(url, urlParams, data, onLoad /*(bool success, Object result, St
     }
 }
 
+function redirect(page){
+    request('/redirect', null, {page: page}, function(success, result, error, e){
+        if(!success) console.log(error);
+        else{
+            document.open('text/html');
+            document.write(result);
+            document.close();
+        }
+    });
+    //!!! store the [static]pages somehow, so they don't !!!
+    //!!! have to be loaded with a new request each time !!!
+}
+
 function handleErrors(errors) {
-    for (var i = 0; i < errors.length; i++) {
-        switch (errors[i]) {
+    errors.forEach(error=>{
+        var message='';
+        switch (error) {
             case 'invalidRequest':
+                console.log('An invalid request has been sent!');
+                message = 'An unexpected comunications error occured. Please reload and try again.';
                 break;
             case 'invalidUsername':
                 break;
@@ -61,7 +85,8 @@ function handleErrors(errors) {
             case 'tooManyFailedLogins':
                 break;
             default:
+                //unknown error
                 break;
         }
-    }
+    });
 }
