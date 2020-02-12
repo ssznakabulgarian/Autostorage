@@ -57,6 +57,8 @@ function handleErrors(errors) {
     errors.forEach(error=>{
         var message='';
         switch (error) {
+            case 'invlaidServerResponse':
+                break;
             case 'invalidRequest':
                 console.log('An invalid request has been sent!');
                 message = 'An unexpected comunications error occured. Please reload and try again.';
@@ -73,6 +75,8 @@ function handleErrors(errors) {
                 break;
             case 'invalidToken':
                 break;
+            case 'wrongToken':
+                break;
             case 'wrongPassword':
                 break;
             case 'wrongEmail':
@@ -84,6 +88,8 @@ function handleErrors(errors) {
             case 'emailTaken':
                 break;
             case 'tooManyFailedLogins':
+                break;
+            case 'emptyResponse':
                 break;
             default:
                 //unknown error

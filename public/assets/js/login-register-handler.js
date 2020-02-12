@@ -1,8 +1,10 @@
-var localStorge, loginButton, registerButton;
+var localStorage, loginButton, registerButton, logoutButton, openProfileEditButton;
 window.onload = function(){
     loginButton = document.getElementById("login-button");
     registerButton = document.getElementById("register-button");
     localStorage = window.localStorage;
+    logoutButton = document.getElementById("logout-button");
+    openProfileEditButton = document.getElementById("open-profile-edit-button");
 
     if(loginButton){
         loginButton.addEventListener("click", function (e) {
@@ -48,5 +50,27 @@ window.onload = function(){
             });
             return false;
         });
+    }
+    
+    if(logoutButton){
+        logoutButton.onclick = function(){
+            if(localStorage.getItem('token')){
+                request('/users/logout', null, {token: localStorage.getItem('token')}, (success, result, err, e)=>{
+                    if(success){
+                        localStorage.removeItem('token');
+                        alert("successfully logged out: "+result.name.first+" "+result.name.last);
+                        redirect("index.html");
+                    }else{
+                        handleErrors(err);
+                    }
+                });
+            }
+        }
+    }
+    
+    if(openProfileEditButton){
+        openProfileEditButton.onclick = function(){
+            redirect("profile.html");
+        }
     }
 }
