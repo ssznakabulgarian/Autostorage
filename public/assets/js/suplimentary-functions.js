@@ -50,6 +50,7 @@ function redirect(page){
     });
     //!!! store the [static]pages somehow, so they don't !!!
     //!!! have to be loaded with a new request each time !!!
+    //on second thoughts the browser already does that so...
 }
 
 function handleErrors(errors) {

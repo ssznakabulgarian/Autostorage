@@ -6,9 +6,11 @@ router.all('/', function (req, res, next) {
   next();
 });
 
+var initialHTML = '<!DOCTYPE html><html><head></head><body><script src="assets/js/suplimentary-functions.js"></script><script src="assets/js/index.js"></script></body></html>';
+
 router.get('/', function (req, res, next) {
   if(req.path == '/'){
-    res.redirect('login.html');
+    res.send(initialHTML);
   }else{
     next();
   }
