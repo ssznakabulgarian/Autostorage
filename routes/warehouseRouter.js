@@ -40,10 +40,10 @@ router.post('/import', async function (req, res, next) {
     if (!isRequestValid(req, 'import')) result.error.push("invalidRequest");
     if (result.error.length == 0) {
         req.body.time = Date.now();
-        var vacantAddresses = await database.many("SELECT address FROM storageUnits WHERE status='vacant'", req.body); // to be used further on: "AND owner_id=(SELECT id FROM users WHERE token = $(token))"
+        var vacantAddresses = await database.many("SELECT address FROM storageunits WHERE status='vacant'", req.body); // to be used further on: "AND owner_id=(SELECT id FROM users WHERE token = $(token))"
         req.body.item.address = vacantAddresses[Math.floor(Math.random() * vacantAddresses.length)].address;
         await database.none("INSERT INTO operations(address, destination, type, time_added) VALUES($(slot), $(item.address), 'import', $(time))", req.body);
-        await database.none("UPDATE storageUnits SET owner_id=(SELECT id FROM users WHERE token = $(token)), name=$(item.name), time_filled=$(time), description=$(description), status='reserved' WHERE address=$(item.address)", req.body);
+        await database.none("UPDATE storageunits SET owner_id=(SELECT id FROM users WHERE token = $(token)), name=$(item.name), time_filled=$(time), description=$(description), status='reserved' WHERE address=$(item.address)", req.body);
         result.data = {
             item: req.body.item
         }
@@ -61,7 +61,7 @@ router.post('/export', async function (req, res, next) {
     if (result.error.length == 0) {
         req.body.time = Date.now();
         await database.none("INSERT INTO operations(address, destination, type, time_added) VALUES($(item.address), $(slot), 'export', $(time))", req.body);
-        await database.none("UPDATE storageUnits SET status='reserved' WHERE address=$(item.address)", req.body);
+        await database.none("UPDATE storageunits SET status='reserved' WHERE address=$(item.address)", req.body);
     }
     res.json(result);
     next();
@@ -73,9 +73,12 @@ router.post('/list', async function (req, res) {
         data: null
     };
     if (!isRequestValid(req, 'list')) result.error.push("invalidRequest");
-    if (Request.error.length == 0) {
-        result.data = await database.manyOrNone("SELECT address, name, description, time_filled, status FROM storageUnits WHERE owner_id=(SELECT id FROM users WHERE token = $(token))", req.body);
-        res.json(result);
+    if (result.error.length == 0) {
+        var tmp = await database.oneOrNone("SELECT id FROM users WHERE token = $(token)", req.body);
+        req.body.id=tmp.id;
+        delete tmp;
+        if(!req.body.id) result.error.push('wrongToken');
+        else result.data = await database.manyOrNone("SELECT address, name, description, time_filled, status FROM storageunits WHERE owner_id = $(id)", req.body);
     }
     res.json(result);
 })
@@ -93,12 +96,12 @@ router.post('/operation_event', async function (req, res) {
                 await database.none("UPDATE operations SET status='processing' WHERE id=$(operation.id)", req.body);
                 break;
             case 'error':
-                await database.none("UPDATE storageUnits SET owner_id=NULL, name=NULL, time_filled=NULL, description=NULL, status='vacant' WHERE address=(SELECT destination FROM operations WHERE id=$(operation.id))", req.body);
+                await database.none("UPDATE storageunits SET owner_id=NULL, name=NULL, time_filled=NULL, description=NULL, status='vacant' WHERE address=(SELECT destination FROM operations WHERE id=$(operation.id))", req.body);
                 await database.none("DELETE FROM operations WHERE id=$(operation.id)", req.body);
                 //report error to client
                 break;
             case 'complete':
-                await database.none("UPDATE storageUnits SET status='taken' WHERE address=(SELECT destination FROM operations WHERE id=$(operation.id))", req.body);
+                await database.none("UPDATE storageunits SET status='taken' WHERE address=(SELECT destination FROM operations WHERE id=$(operation.id))", req.body);
                 await database.none("DELETE FROM operations WHERE id=$(operation.id)", req.body);
                 break;
             default:
