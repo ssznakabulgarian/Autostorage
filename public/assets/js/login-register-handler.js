@@ -56,13 +56,10 @@ window.onload = function(){
         logoutButton.onclick = function(){
             if(localStorage.getItem('token')){
                 request('/users/logout', null, {token: localStorage.getItem('token')}, (success, result, err, e)=>{
-                    if(success){
-                        localStorage.removeItem('token');
-                        alert("successfully logged out: "+result.name.first+" "+result.name.last);
-                        redirect("index.html");
-                    }else{
-                        handleErrors(err);
-                    }
+                    if(!success) handleErrors(err);
+                    else alert("successfully logged out: "+result.name.first+" "+result.name.last);
+                    localStorage.removeItem('token');
+                    redirect("index.html");
                 });
             }
         }

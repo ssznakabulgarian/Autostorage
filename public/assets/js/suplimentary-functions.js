@@ -56,6 +56,7 @@ function redirect(page) {
 }
 
 function handleErrors(errors) {
+    console.log(errors);
     errors.forEach(error => {
         var message = '';
         switch (error) {
@@ -77,7 +78,7 @@ function handleErrors(errors) {
                 break;
             case 'invalidToken':
                 break;
-            case 'wrongToken':
+            case 'wrongOrExpiredToken':
                 break;
             case 'wrongPassword':
                 break;
@@ -100,32 +101,19 @@ function handleErrors(errors) {
     });
 }
 
-function genStorageUnitCard(data) {
-    // <div class="col-md-6 col-xl-3 mb-4 storage-unit-card">
-    //     <div class="card shadow border-left-primary py-2">
-    //         <div class="card-body">
-    //             <div class="row align-items-center">
-    //                 <div class="col mr-1">
-    //                     <div class="text-uppercase text-primary font-weight-bold mb-1 h-4"><span>name</span></div>
-    //                     <div class="text-dark font-weight-bold text-xs"><span>description</span></div>
-    //                 </div>
-    //                 <div class="col flex-nowrap">
-    //                     <div class="text-dark font-weight-bold text-xs mb-2"><span>status</span></div>
-    //                     <div class="text-dark font-weight-bold text-xs"><span>time filled</span></div>
-    //                 </div>
-    //             </div>
-    //         </div>
-    //     </div>
-    // </div>
+function genStorageUnitCards() {
     var cardType, template, currentCard, nameElement, descriptionElement, statusElement, timeFilledElement, cardsContainerElement;
 
     cardsContainerElement = document.getElementById('my-storage-units-crads-container');
     request('/warehouse/list', null, {
         token: localStorage.getItem('token')
     }, (success, result, error, e) => {
-        if (!success) console.log(error);
+        if (!success) handleErrors(error);
         else {
-            template = document.getElementById('storageUnitCardTemplate');
+            template = document.getElementsByClassName('storage-unit-card').item(0).cloneNode(true);
+            while (cardsContainerElement.firstChild) {
+                cardsContainerElement.removeChild(cardsContainerElement.lastChild);
+            }
             result.forEach(element => {
                 currentCard = template.cloneNode(true);
                 nameElement = currentCard.firstElementChild.firstElementChild.firstElementChild.firstElementChild.firstElementChild.firstElementChild;
@@ -152,14 +140,13 @@ function genStorageUnitCard(data) {
 
                 nameElement.innerHTML = element.name;
                 descriptionElement.innerHTML = element.description;
-                statusElement.innerHTML = 'status: '+element.status;
+                statusElement.innerHTML = 'status: ' + element.status;
                 var timeFilled = new Date;
                 timeFilled.setTime(element.time_filled);
-                timeFilledElement.innerHTML = 'time filled: '+timeFilled.toLocaleString();
+                timeFilledElement.innerHTML = 'time filled: ' + timeFilled.toLocaleString();
 
                 cardsContainerElement.appendChild(currentCard);
             });
-            template.parentElement.removeChild(template);
         }
     });
 }

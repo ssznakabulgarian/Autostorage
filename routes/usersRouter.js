@@ -84,8 +84,7 @@ router.post('/login', async function (req, res) {
   if (isEmailValid(req.body.username)) {
     req.body.email = req.body.username;
     req.body.username = null;
-  }
-  if (!isUsernameValid(req.body.username)) result.error.push("invalidUsername");
+  }else if (!isUsernameValid(req.body.username)) result.error.push("invalidUsername");
   if (!isPasswordValid(req.body.password)) result.error.push("invalidPassword");
 
   if (result.error.length == 0) {
@@ -145,7 +144,7 @@ router.post('/logout', async function (req, res) {
         }
       };
     } else {
-      result.error.push("wrongToken");
+      result.error.push("wrongOrExpiredToken");
     }
   }
   res.json(result);
@@ -167,7 +166,7 @@ router.post('/read', async function (req, res) {
       delete result.data.password;
       delete result.data.failed_logins;
     } else {
-      result.error.push("wrongToken");
+      result.error.push("wrongOrExpiredToken");
     }
   }
   res.json(result);
