@@ -162,6 +162,12 @@ router.post('/read', async function (req, res) {
     var row = await database.oneOrNone("SELECT * FROM users WHERE token=$(token)", req.body);
     if (row) {
       result.data = row;
+      result.data.name={
+        first: row.first_name,
+        last: row.last_name
+      };
+      delete result.data.first_name;
+      delete result.data.last_name;
       delete result.data.id;
       delete result.data.password;
       delete result.data.failed_logins;

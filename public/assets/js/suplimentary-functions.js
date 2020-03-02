@@ -98,10 +98,123 @@ function handleErrors(errors) {
                 //unknown error
                 break;
         }
+        alert(message);
     });
 }
 
+var importCard, exportCard, importCardTemplate, exportCardTemplate, mainContainer, isImportDialogueOpen = false, isExportDialogueOpen = false, navbarNameElement;
+
+function setUtilityVars(){
+    mainContainer = document.getElementById('main-cards-container');
+    importCard = document.getElementById('import-card');
+    exportCard = document.getElementById('export-card');
+    importCardTemplate = importCard.cloneNode(true);
+    importCard.parentElement.removeChild(importCard);
+    exportCardTemplate = exportCard.cloneNode(true);
+    exportCard.parentElement.removeChild(exportCard);
+    navbarNameElement = document.getElementById('navbar-user-name');
+}
+
 function genStorageUnitCards() {
+
+    function closeExportDialogue() {
+        var card = document.getElementById('export-card');
+        card.parentElement.removeChild(card);
+        isExportDialogueOpen = false;
+    }
+
+    function closeImportDialogue() {
+        var card = document.getElementById('import-card');
+        card.parentElement.removeChild(card);
+        isImportDialogueOpen = false;
+    }
+
+    function setAvailableSlots(element) {
+        var availableSlotsContainer = element.firstElementChild.firstElementChild.lastElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.lastElementChild.firstElementChild;
+        var availableSlotTemplate = element.firstElementChild.firstElementChild.lastElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.cloneNode(true);
+        availableSlotsContainer.removeChild(element.firstElementChild.firstElementChild.lastElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild);
+        request('/warehouse/list_available_slots', null, {
+            data: 'data'
+        }, (success, result, error, e) => {
+            if (!success) handleErrors(error);
+            else {
+                result.forEach(element => {
+                    var availableSlotTmp = availableSlotTemplate.cloneNode(true);
+                    availableSlotTmp.setAttribute('value', element.address);
+                    availableSlotTmp.innerHTML = element.name;
+                    availableSlotsContainer.appendChild(availableSlotTmp);
+                });
+                availableSlotsContainer.firstElementChild.setAttribute('selected', '');
+            }
+        });
+    }
+
+    function openExportDialogue(item) {
+        if (isExportDialogueOpen) closeExportDialogue();
+        if (isImportDialogueOpen) closeImportDialogue();
+        var selectedCardAddress = item.id;
+        var tmp = exportCardTemplate.cloneNode(true);
+        setAvailableSlots(tmp);
+        isExportDialogueOpen = true;
+        setTimeout(() => {
+            mainContainer.appendChild(tmp);
+            document.getElementById('export-submit-button').addEventListener('click', (e) => {
+                e.preventDefault();
+                request('/warehouse/export', null, {
+                    token: localStorage.getItem('token'),
+                    slot: document.getElementById('export-slot-select').value,
+                    itemAddress: selectedCardAddress
+                }, (success, result, error, e) => {
+                    if (!success) handleErrors(error);
+                    else {
+                        console.log(result);
+                        genStorageUnitCards();
+                    }
+                });
+                mainContainer.removeChild(tmp);
+                isExportDialogueOpen=false;
+            });
+        }, 1000);
+    }
+
+    function updateCards() {
+        if (isExportDialogueOpen) closeExportDialogue();
+        if (isImportDialogueOpen) closeImportDialogue();
+        //genStorageUnitCards();
+    }
+
+    function openImportDialogue(item) {
+        if (isExportDialogueOpen) closeExportDialogue();
+        if (isImportDialogueOpen) closeImportDialogue();
+        var selectedCardAddress = item.id;
+        var tmp = importCardTemplate.cloneNode(true);
+        setAvailableSlots(tmp);
+        isImportDialogueOpen = true;
+        setTimeout(() => {
+            mainContainer.appendChild(tmp);
+            document.getElementById('import-submit-button').addEventListener('click', (e) => {
+                e.preventDefault();
+                request('/warehouse/import', null, {
+                    token: localStorage.getItem('token'),
+                    slot: document.getElementById('import-slot-select').value,
+                    item: {
+                        name: document.getElementById('import-item-name').value,
+                        description: document.getElementById('import-item-description').value,
+                        address: selectedCardAddress
+                    }
+                }, (success, result, error, e) => {
+                    if (!success) handleErrors(error);
+                    else {
+                        console.log(result);
+                        genStorageUnitCards();
+                    }
+                });
+                mainContainer.removeChild(tmp);
+                isImportDialogueOpen=false;
+            });
+        }, 1000);
+    }
+    //---------------------------------------------------------------------------------------
     var cardType, template, currentCard, nameElement, descriptionElement, statusElement, timeFilledElement, cardsContainerElement;
 
     cardsContainerElement = document.getElementById('my-storage-units-crads-container');
@@ -136,14 +249,33 @@ function genStorageUnitCards() {
                         break;
                 }
                 currentCard.firstElementChild.setAttribute('class', 'card shadow border-left-' + cardType + ' py-2');
-                nameElement.parentElement.setAttribute('calss', 'text-uppercase text-' + cardType + ' font-weight-bold mb-1 h-4');
+                nameElement.parentElement.setAttribute('class', 'text-uppercase text-' + cardType + ' font-weight-bold mb-1 h-4');
 
                 nameElement.innerHTML = element.name;
                 descriptionElement.innerHTML = element.description;
+                currentCard.setAttribute('status', element.status);
                 statusElement.innerHTML = 'status: ' + element.status;
                 var timeFilled = new Date;
                 timeFilled.setTime(element.time_filled);
                 timeFilledElement.innerHTML = 'time filled: ' + timeFilled.toLocaleString();
+
+                currentCard.addEventListener('click', (e) => {
+                    var element = e.srcElement;
+                    while (!element.hasAttribute('status')) element = element.parentElement;
+                    console.log(element);
+                    
+                    switch (element.getAttribute('status')) {
+                        case 'vacant':
+                            openImportDialogue(element);
+                            break;
+                        case 'processing':
+                            updateCards();
+                            break;
+                        case 'taken':
+                            openExportDialogue(element);
+                            break;
+                    }
+                });
 
                 cardsContainerElement.appendChild(currentCard);
             });
