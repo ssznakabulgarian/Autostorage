@@ -214,6 +214,31 @@ router.post('/update', async function (req, res) {
     }
   }
   res.json(result);
-})
+});
+
+router.post('/purchase', async function (req, res) {
+  var result = {
+    error: [],
+    data: {}
+  };
+
+  if (!isRequestValid(req)) result.error.push("invalidRequest");
+  if (!isTokenValid(req.body.token)) result.error.push('invalidToken');
+  if (req.body.amount<1 || req.body.amount>100) result.error.push('invalidAmount');
+  if (result.error.length == 0) {
+    var row = await database.oneOrNone("SELECT id FROM users WHERE token=$(token)", req.body);
+    if (row) {
+      req.body.id = row.id;
+      req.body.time = Date.now();
+      await database.none('UPDATE storageunits SET owner_id=$(id), time_purchased=$(time) WHERE owner_id=-1 LIMIT $(amount)', req.body);
+      result.data = {
+        amount: req.body.amount
+      }
+    }else{
+      result.error.push("wrongOrExpiredToken");
+    }
+  }
+  res.json(result);
+});
 
 module.exports = router;

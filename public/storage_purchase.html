@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>Page Not Found - Auto Store</title>
+    <title>Dashboard - Auto Store</title>
     <meta property="og:type" content="website">
     <meta name="description" content="We provide a quick and easy solution for small businesses / cutomers who need to outsource their warehousing services. This platform allows you to buy storage units, store your items and access them at any moment easily.">
     <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
@@ -140,13 +140,35 @@
                     </ul>
             </div>
             </nav>
-            <div class="container-fluid">
-                <div class="text-center mt-5">
-                    <div class="error mx-auto" data-text="404">
-                        <p class="m-0">404</p>
+            <div class="container-fluid" id="main-cards-container">
+                <div class="d-sm-flex justify-content-between align-items-center mb-4">
+                    <h3 class="text-dark mb-0">Purchase</h3>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="text-primary font-weight-bold m-0">Purchase storage units</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 col-xl-3 offset-lg-0">
+                                        <form>
+                                            <div class="form-group"><span style="color: rgb(0,0,0);">How many storage units would you like to purchase?</span><input class="border-primary form-control" type="number" id="storage-unit-purchase-number" min="1" max="100" step="1"
+                                                    placeholder="1"></div>
+                                        </form>
+                                    </div>
+                                    <div class="col-md-6 col-xl-3 offset-lg-0">
+                                        <form>
+                                            <div class="form-group"><span id="storage-unit-purchase-price-span" style="color: rgb(0,0,0);">Total price (will be added to liabilities upon submission):&nbsp;</span><br><button class="btn btn-primary" id="storage-unit-purchase-submit-button"
+                                                    type="button" style="right: 2rem;position: absolute;">Buy</button></div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <p class="text-dark mb-5 lead">Page Not Found</p>
-                    <p class="text-black-50 mb-0">It looks like you found a glitch in the matrix...</p><a href="/">← Go back</a></div>
+                </div>
             </div>
         </div>
         <footer class="bg-white sticky-footer">

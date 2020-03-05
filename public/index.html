@@ -1,8 +1,33 @@
 <!DOCTYPE html>
 <html>
-    <head></head>
-    <body>
-        <script src="assets/js/suplimentary-functions.js"></script>
-        <script src="assets/js/index.js"></script>
-    </body>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Login - Auto Store</title>
+    <meta property="og:type" content="website">
+    <meta name="description"
+        content="We provide a quick and easy solution for small businesses / cutomers who need to outsource their warehousing services. This platform allows you to buy storage units, store your items and access them at any moment easily.">
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
+    <link rel="stylesheet" href="assets/css/global.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
+    <script src="assets/js/theme.js"></script>
+    <script src="assets/js/suplimentary-functions.js"></script>
+    <script src="assets/js/login-register-handler.js"></script>
+    <script src="assets/js/dashboard.js"></script>
+    <script src="assets/js/purchase.js"></script>
+</head>
+
+<body>
+    <script>
+        if (window.localStorage.getItem('token')) redirect('dashboard.html');
+        else redirect('login.html');
+    </script>
+</body>
+
 </html>
