@@ -4,6 +4,10 @@ var database = require('../database');
 var slotAddresses = ['1111', '2222', '3333'];
 var operationStatuses = ['started', 'error', 'complete'];
 var secretAuth = '_9e8a7s4y1s2t3o6r5e_';
+var storageUnitPrice = 2.4916,
+    vatRate = 20,
+    importOperationPrice = 4.1583,
+    exportOperationPrice = 4.1583;
 
 function isEmpty(value) {
     return value == '' || value == null || value == undefined;
@@ -84,15 +88,15 @@ router.post('/import', async function (req, res) {
         var row = await database.oneOrNone("SELECT id FROM users WHERE token = $(token)", req.body);
         if (row) {
             req.body.id = row.id;
-            //req.body.time = Date.now();
+            req.body.time = Date.now();
             var vacantAddresses = await database.manyOrNone("SELECT address FROM storageunits WHERE status='vacant' AND owner_id = $(id)", req.body);
             if (!vacantAddresses) result.error.push('wrongAddress');
             else {
-                vacantAddresses.forEach(async (element)=> {
+                vacantAddresses.forEach(async (element) => {
                     if (element.address == req.body.item.address) {
                         req.body.code = Math.floor(Math.random() * 899999 + 100000);
                         await database.none("INSERT INTO operations(destination, type, status, time_added, code) VALUES($(item.address), 'import', 'waiting', $(time), $(code))", req.body);
-                        await database.none("UPDATE storageunits SET name=$(item.name), description=$(item.description), status='processing', operation_code=($code) WHERE address=$(item.address)", req.body);
+                        await database.none("UPDATE storageunits SET name=$(item.name), description=$(item.description), status='processing', operation_code=$(code) WHERE address=$(item.address)", req.body);
                         //  await database.none("UPDATE storageunits SET status='procesing' WHERE address=$(slot)", req.body);
                         result.data = {
                             item: req.body.item,
@@ -101,7 +105,6 @@ router.post('/import', async function (req, res) {
                         }
                     }
                 });
-                if(!result.data) result.error.push('wrongAddress');
             }
         } else {
             result.error.push("wrongOrExpiredToken");
@@ -157,7 +160,26 @@ router.post('/list', async function (req, res) {
         var row = await database.oneOrNone("SELECT id FROM users WHERE token = $(token)", req.body);
         if (row) {
             req.body.id = row.id;
-            result.data = await database.manyOrNone("SELECT address, name, description, time_purchased, status, operation_code FROM storageunits WHERE owner_id = $(id)", req.body);
+            result.data = await database.manyOrNone("SELECT address, name, description, time_purchased, status, operation_code FROM storageunits WHERE owner_id = $(id) ORDER BY address ASC", req.body);
+        } else {
+            result.error.push("wrongOrExpiredToken");
+        }
+    }
+    res.json(result);
+});
+
+router.post('/list_liabilities', async function (req, res) {
+    var result = {
+        error: [],
+        data: null
+    };
+    if (!isRequestValid(req)) result.error.push("invalidRequest");
+    if (!isTokenValid(req.body.token)) result.error.push("invalidToken");
+    if (result.error.length == 0) {
+        var row = await database.oneOrNone("SELECT id FROM users WHERE token = $(token)", req.body);
+        if (row) {
+            req.body.id = row.id;
+            result.data = await database.manyOrNone("SELECT type, value, state, date FROM liabilities WHERE user_id = $(id) ORDER BY date", req.body);
         } else {
             result.error.push("wrongOrExpiredToken");
         }
@@ -188,7 +210,7 @@ router.post('/list_waiting_operations', async function (req, res) {
     if (!isRequestValid(req)) result.error.push("invalidRequest");
 
     if (result.error.length == 0) {
-        var row = await database.manyOrNone("SELECT * FROM operations WHERE status='waiting'", req.body);
+        var row = await database.manyOrNone("SELECT * FROM operations WHERE status='waiting' OR status='started'", req.body);
         result.data = row;
     }
     res.json(result);
@@ -215,19 +237,55 @@ router.post('/operation_event', async function (req, res) {
                 //report error to client
                 break;
             case 'complete':
+                req.body.price = Math.floor((req.body.operation.type == 'export' ? exportOperationPrice : importOperationPrice)*(100 + vatRate))/100;
+                req.body.time = Date.now();
+                
+                await database.none("INSERT INTO liabilities(user_id, type, value, state, date) VALUES((SELECT owner_id FROM storageunits WHERE operation_code = (SELECT code FROM operations WHERE id=$(operation.id))), $(operation.type), $(price), 'not_paid', $(time))", req.body);
                 if (req.body.operation.type == 'import') {
                     await database.none("UPDATE storageunits SET status='taken', operation_code=NULL WHERE address=(SELECT destination FROM operations WHERE id=$(operation.id))", req.body);
                 } else if (req.body.operation.type == 'export') {
                     await database.none("UPDATE storageunits SET status='vacant', operation_code=NULL WHERE address=(SELECT address FROM operations WHERE id=$(operation.id))", req.body);
                 }
                 await database.none("UPDATE operations SET status='complete' WHERE id=$(operation.id)", req.body);
-                console.log(req.body.operation.id);
-                
                 break;
         }
     }
 
     res.json(result);
-})
+});
+
+router.post('/release', async function (req, res) {
+    var result = {
+        error: [],
+        data: null
+    };
+    if (!isRequestValid(req)) result.error.push("invalidRequest");
+    if (!isTokenValid(req.body.token)) result.error.push('invalidToken');
+    if (!isItemAddressValid(req.body.address)) result.error.push('invalidAddress');
+    if (result.error.length == 0) {
+        var row = await database.oneOrNone("SELECT id FROM users WHERE token = $(token)", req.body);
+        if (!row) result.error.push("wrongOrExpiredToken");
+        else {
+            req.body.id = row.id;
+            var vacantAddresses = await database.oneOrNone("SELECT address FROM storageunits WHERE status='vacant' AND owner_id = $(id) AND address=$(address)", req.body);
+            if (!vacantAddresses) result.error.push('wrongAddress');
+            else {
+                var timeStamp = await database.one("SELECT time_purchased FROM storageunits WHERE address=$(address)", req.body);
+                timeStamp = parseInt(timeStamp.time_purchased);
+                var now = Date.now();
+                req.body.price = Math.round((now - timeStamp) / (1000 * 60 * 60) * storageUnitPrice * (100 + vatRate) / 100);
+                
+                req.body.time = now;
+                await database.none("UPDATE storageunits SET owner_id=-1 WHERE address=$(address)", req.body);
+                await database.none("INSERT INTO liabilities(user_id, type, value, state, date) VALUES($(id), 'storageunit', $(price), 'not_paid', $(time))", req.body);
+                result.data = {
+                    address: req.body.address,
+                    price: req.body.price
+                }
+            }
+        }
+    }
+    res.json(result);
+});
 
 module.exports = router;

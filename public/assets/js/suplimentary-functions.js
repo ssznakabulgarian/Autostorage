@@ -116,9 +116,12 @@ var importCard,
     exportCard,
     importCardTemplate,
     exportCardTemplate,
-    mainContainer,
+    dashboardMainContainer,
+    storageUnitCard,
+    storageUnitCardTemplate,
     isImportDialogueOpen = false,
     isExportDialogueOpen = false,
+    isMaintenanceDialogueOpen = false,
     navbarNameElement,
     localStorage,
     loginButton,
@@ -128,12 +131,29 @@ var importCard,
     purchasePriceSpan,
     purchaseStorageNumber,
     purchaseStorageNumberInput,
-    purchaseSubmitButton;
+    purchaseSubmitButton,
+    maintenanceCard,
+    maintenanceCardTemplate,
+    cardTimeIntervals = [],
+    liabilitiesTableContainer,
+    liabilitiesTable,
+    liabilitiesTableRow,
+    liabilitiesTableRowTemplate,
+    cardsContainerElement,
+    liabilitiesTableRefreshButton,
+    cardsUpdateInterval;
 
 function setUtilityVars() {
-    mainContainer = document.getElementById('main-cards-container');
+    dashboardMainContainer = document.getElementById('main-cards-container');
     importCard = document.getElementById('import-card');
     exportCard = document.getElementById('export-card');
+    maintenanceCard = document.getElementById('maintenance-card');
+    storageUnitCard = document.getElementById('storage-unit-card');
+    cardsContainerElement = document.getElementById('my-storage-units-crads-container');
+    liabilitiesTableContainer = document.getElementById('my-liabilities-table-container');
+    liabilitiesTable = document.getElementById('liabilities-table-main');
+    liabilitiesTableRow = document.getElementById('liabilities-table-row');
+    liabilitiesTableRefreshButton = document.getElementById('liabilities-table-refresh-button');
     if (importCard) {
         importCardTemplate = importCard.cloneNode(true);
         importCard.parentElement.removeChild(importCard);
@@ -141,6 +161,18 @@ function setUtilityVars() {
     if (exportCard) {
         exportCardTemplate = exportCard.cloneNode(true);
         exportCard.parentElement.removeChild(exportCard);
+    }
+    if (maintenanceCard) {
+        maintenanceCardTemplate = maintenanceCard.cloneNode(true);
+        maintenanceCard.parentElement.removeChild(maintenanceCard);
+    }
+    if (storageUnitCard) {
+        storageUnitCardTemplate = storageUnitCard.cloneNode(true);
+        storageUnitCard.parentElement.removeChild(storageUnitCard);
+    }
+    if (liabilitiesTableRow) {
+        liabilitiesTableRowTemplate = liabilitiesTableRow.cloneNode(true);
+        liabilitiesTableRow.parentElement.removeChild(liabilitiesTableRow);
     }
     navbarNameElement = document.getElementById('navbar-user-name');
     logoutButton = document.getElementById("logout-button");
@@ -157,127 +189,154 @@ function msToTime(duration) {
     var milliseconds = parseInt((duration % 1000) / 100),
         seconds = Math.floor((duration / 1000) % 60),
         minutes = Math.floor((duration / (1000 * 60)) % 60),
-        hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+        hours = Math.floor(duration / (1000 * 60 * 60));
 
     hours = (hours < 10) ? "0" + hours : hours;
     minutes = (minutes < 10) ? "0" + minutes : minutes;
     seconds = (seconds < 10) ? "0" + seconds : seconds;
 
-    return hours + ":" + minutes + ":" + seconds + "." + milliseconds;
+    return hours + ":" + minutes + ":" + seconds;
 }
 
-function genStorageUnitCards() {
 
-    function closeExportDialogue() {
-        var card = document.getElementById('export-card');
-        card.parentElement.removeChild(card);
-        isExportDialogueOpen = false;
-    }
+function closeExportDialogue() {
+    var card = document.getElementById('export-card');
+    card.parentElement.removeChild(card);
+    isExportDialogueOpen = false;
+}
 
-    function closeImportDialogue() {
-        var card = document.getElementById('import-card');
-        card.parentElement.removeChild(card);
-        isImportDialogueOpen = false;
-    }
+function closeImportDialogue() {
+    var card = document.getElementById('import-card');
+    card.parentElement.removeChild(card);
+    isImportDialogueOpen = false;
+}
 
-    function setAvailableSlots(element) {
-        var availableSlotsContainer = element.firstElementChild.firstElementChild.lastElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.lastElementChild.firstElementChild;
-        var availableSlotTemplate = element.firstElementChild.firstElementChild.lastElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.cloneNode(true);
-        availableSlotsContainer.removeChild(element.firstElementChild.firstElementChild.lastElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild);
-        request('/warehouse/list_available_slots', null, {
-            data: 'data'
+function closeMaintenanceDialogue() {
+    var card = document.getElementById('maintenance-card');
+    card.parentElement.removeChild(card);
+    isMaintenanceDialogueOpen = false;
+}
+
+function setAvailableSlots(element) {
+    var availableSlotsContainer = element.firstElementChild.firstElementChild.lastElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.lastElementChild.firstElementChild;
+    var availableSlotTemplate = element.firstElementChild.firstElementChild.lastElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.cloneNode(true);
+    availableSlotsContainer.removeChild(element.firstElementChild.firstElementChild.lastElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild);
+    request('/warehouse/list_available_slots', null, {
+        data: 'data'
+    }, (success, result, error, e) => {
+        if (!success) handleErrors(error);
+        else {
+            result.forEach(element => {
+                var availableSlotTmp = availableSlotTemplate.cloneNode(true);
+                availableSlotTmp.setAttribute('value', element.address);
+                availableSlotTmp.innerHTML = element.name;
+                availableSlotsContainer.appendChild(availableSlotTmp);
+            });
+            availableSlotsContainer.firstElementChild.setAttribute('selected', '');
+        }
+    });
+}
+
+function openExportDialogue(item) {
+    if (isExportDialogueOpen) closeExportDialogue();
+    if (isImportDialogueOpen) closeImportDialogue();
+    if (isMaintenanceDialogueOpen) closeMaintenanceDialogue();
+    var selectedCardAddress = item.id;
+    var tmp = exportCardTemplate.cloneNode(true);
+    //  setAvailableSlots(tmp);
+    isExportDialogueOpen = true;
+    dashboardMainContainer.appendChild(tmp);
+    document.getElementById('export-submit-button').addEventListener('click', (e) => {
+        e.preventDefault();
+        request('/warehouse/export', null, {
+            token: localStorage.getItem('token'),
+            //  slot: document.getElementById('export-slot-select').value,
+            itemAddress: selectedCardAddress
         }, (success, result, error, e) => {
             if (!success) handleErrors(error);
             else {
-                result.forEach(element => {
-                    var availableSlotTmp = availableSlotTemplate.cloneNode(true);
-                    availableSlotTmp.setAttribute('value', element.address);
-                    availableSlotTmp.innerHTML = element.name;
-                    availableSlotsContainer.appendChild(availableSlotTmp);
-                });
-                availableSlotsContainer.firstElementChild.setAttribute('selected', '');
+                console.log(result);
+                genStorageUnitCards();
             }
         });
-    }
+        dashboardMainContainer.removeChild(tmp);
+        isExportDialogueOpen = false;
+    });
+}
 
-    function openExportDialogue(item) {
-        if (isExportDialogueOpen) closeExportDialogue();
-        if (isImportDialogueOpen) closeImportDialogue();
-        var selectedCardAddress = item.id;
-        var tmp = exportCardTemplate.cloneNode(true);
-        //  setAvailableSlots(tmp);
-        isExportDialogueOpen = true;
-        setTimeout(() => {
-            mainContainer.appendChild(tmp);
-            document.getElementById('export-submit-button').addEventListener('click', (e) => {
-                e.preventDefault();
-                request('/warehouse/export', null, {
-                    token: localStorage.getItem('token'),
-                    //  slot: document.getElementById('export-slot-select').value,
-                    itemAddress: selectedCardAddress
-                }, (success, result, error, e) => {
-                    if (!success) handleErrors(error);
-                    else {
-                        console.log(result);
-                        genStorageUnitCards();
-                    }
-                });
-                mainContainer.removeChild(tmp);
-                isExportDialogueOpen = false;
-            });
-        }, 1000);
-    }
+function updateCards() {
+    if (isExportDialogueOpen) closeExportDialogue();
+    if (isImportDialogueOpen) closeImportDialogue();
+    if (isMaintenanceDialogueOpen) closeMaintenanceDialogue();
+    //genStorageUnitCards();
+}
 
-    function updateCards() {
-        if (isExportDialogueOpen) closeExportDialogue();
-        if (isImportDialogueOpen) closeImportDialogue();
-        //genStorageUnitCards();
-    }
+function openImportDialogue(item) {
+    if (isExportDialogueOpen) closeExportDialogue();
+    if (isImportDialogueOpen) closeImportDialogue();
+    if (isMaintenanceDialogueOpen) closeMaintenanceDialogue();
+    var selectedCardAddress = item.id;
+    var tmp = importCardTemplate.cloneNode(true);
+    //  setAvailableSlots(tmp);
+    isImportDialogueOpen = true;
+    dashboardMainContainer.appendChild(tmp);
+    document.getElementById('import-submit-button').addEventListener('click', (e) => {
+        e.preventDefault();
+        request('/warehouse/import', null, {
+            token: localStorage.getItem('token'),
+            //  slot: document.getElementById('import-slot-select').value,
+            item: {
+                name: document.getElementById('import-item-name').value,
+                description: document.getElementById('import-item-description').value,
+                address: selectedCardAddress
+            }
+        }, (success, result, error, e) => {
+            if (!success) handleErrors(error);
+            else {
+                console.log(result);
+                genStorageUnitCards();
+            }
+        });
+        dashboardMainContainer.removeChild(tmp);
+        isImportDialogueOpen = false;
+    });
+}
 
-    function openImportDialogue(item) {
-        if (isExportDialogueOpen) closeExportDialogue();
-        if (isImportDialogueOpen) closeImportDialogue();
-        var selectedCardAddress = item.id;
-        var tmp = importCardTemplate.cloneNode(true);
-        //  setAvailableSlots(tmp);
-        isImportDialogueOpen = true;
-        setTimeout(() => {
-            mainContainer.appendChild(tmp);
-            document.getElementById('import-submit-button').addEventListener('click', (e) => {
-                e.preventDefault();
-                request('/warehouse/import', null, {
-                    token: localStorage.getItem('token'),
-                    //  slot: document.getElementById('import-slot-select').value,
-                    item: {
-                        name: document.getElementById('import-item-name').value,
-                        description: document.getElementById('import-item-description').value,
-                        address: selectedCardAddress
-                    }
-                }, (success, result, error, e) => {
-                    if (!success) handleErrors(error);
-                    else {
-                        console.log(result);
-                        genStorageUnitCards();
-                    }
-                });
-                mainContainer.removeChild(tmp);
-                isImportDialogueOpen = false;
-            });
-        }, 1000);
-    }
-    //---------------------------------------------------------------------------------------
-    var cardType, template, currentCard, codeElement, nameElement, descriptionElement, statusElement, timeOwnedElement, cardsContainerElement;
+function openMaintenanceDialogue(item) {
+    if (isMaintenanceDialogueOpen) closeMaintenanceDialogue();
+    if (isExportDialogueOpen) closeExportDialogue();
+    if (isImportDialogueOpen) closeImportDialogue();
+    var selectedCardAddress = item.id;
+    var tmp = maintenanceCardTemplate.cloneNode(true);
+    dashboardMainContainer.appendChild(tmp);
+    isMaintenanceDialogueOpen = true;
+    document.getElementById('release-submit-button').addEventListener('click', (e) => {
+        e.preventDefault();
+        request('/warehouse/release', null, {
+            token: localStorage.getItem('token'),
+            address: selectedCardAddress
+        }, (success, result, error, e) => {
+            if (!success) handleErrors(error);
+            else {
+                console.log(result);
+                closeMaintenanceDialogue();
+            }
+        });
+    });
+}
 
-    cardsContainerElement = document.getElementById('my-storage-units-crads-container');
+function genStorageUnitCards() {
+    var cardType, template, currentCard, codeElement, nameElement, descriptionElement, statusElement, timeOwnedElement;
+
     request('/warehouse/list', null, {
         token: localStorage.getItem('token')
     }, (success, result, error, e) => {
         if (!success) handleErrors(error);
         else {
-            template = document.getElementsByClassName('storage-unit-card').item(0).cloneNode(true);
-            while (cardsContainerElement.firstChild) {
-                cardsContainerElement.removeChild(cardsContainerElement.lastChild);
-            }
+            template = storageUnitCardTemplate;
+            while (cardsContainerElement.firstChild) cardsContainerElement.removeChild(cardsContainerElement.lastChild);
+            while (cardTimeIntervals.length) clearInterval(cardTimeIntervals.pop());
+
             result.forEach(element => {
                 currentCard = template.cloneNode(true);
 
@@ -308,29 +367,65 @@ function genStorageUnitCards() {
                 descriptionElement.innerHTML = element.description;
                 currentCard.setAttribute('status', element.status);
                 statusElement.innerHTML = 'status: ' + element.status;
-                var now = Date.now();
-                var timeOwned = now - time_purchased;
-                timeOwnedElement.innerHTML = 'time used: ' + msToTime(timeOwned);
+
+                var tmpCopy1 = timeOwnedElement;
+                tmpCopy1.innerHTML = 'time used: ' + msToTime(Date.now() - element.time_purchased);
+                cardTimeIntervals.push(setInterval(() => {
+                    tmpCopy1.innerHTML = 'time used: ' + msToTime(Date.now() - element.time_purchased);
+                }, 1000));
+
                 codeElement.innerHTML = (element.operation_code) ? 'code: ' + element.operation_code : '';
 
-                currentCard.addEventListener('click', (e) => {
+                currentCard.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    return false;
+                };
+                currentCard.onmousedown = (e) => {
                     var element = e.srcElement;
+                    var mouseButton = e.button;
                     while (!element.hasAttribute('status')) element = element.parentElement;
 
-                    switch (element.getAttribute('status')) {
-                        case 'vacant':
-                            openImportDialogue(element);
-                            break;
-                        case 'processing':
-                            updateCards();
-                            break;
-                        case 'taken':
-                            openExportDialogue(element);
-                            break;
+                    if (mouseButton == 0) {
+                        switch (element.getAttribute('status')) {
+                            case 'vacant':
+                                openImportDialogue(element);
+                                break;
+                            case 'processing':
+                                updateCards();
+                                break;
+                            case 'taken':
+                                openExportDialogue(element);
+                                break;
+                        }
+                    } else if (mouseButton == 2) {
+                        openMaintenanceDialogue(element);
                     }
-                });
+                };
 
                 cardsContainerElement.appendChild(currentCard);
+            });
+        }
+    });
+}
+
+function genLiabilitiesTable() {
+    var tmp;
+
+    request('/warehouse/list_liabilities', null, {token: localStorage.getItem('token')}, (success, result, error, e)=>{
+        if(!success) handleErrors(error);
+        else{
+            while(liabilitiesTable.firstElementChild){
+                liabilitiesTable.removeChild(liabilitiesTable.firstElementChild)
+            }
+            result.forEach((element)=>{
+                tmp = liabilitiesTableRowTemplate.cloneNode(true);
+                tmp.children[0].innerHTML = element.type;
+                tmp.children[1].innerHTML = element.value;
+                tmp.children[2].innerHTML = element.state == 'not_paid' ? 'not paid' : 'paid';
+                var date = new Date();
+                date.setTime(element.date);
+                tmp.children[3].innerHTML = date.toLocaleString();
+                liabilitiesTable.appendChild(tmp);
             });
         }
     });

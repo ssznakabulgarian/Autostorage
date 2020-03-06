@@ -27,7 +27,7 @@ function isPasswordValid(password) {
 }
 
 function isTokenValid(token) {
-  return !isEmpty(token) && token.length==64;
+  return !isEmpty(token) && token.length == 64;
 }
 
 function isRequestValid(req) {
@@ -84,7 +84,7 @@ router.post('/login', async function (req, res) {
   if (isEmailValid(req.body.username)) {
     req.body.email = req.body.username;
     req.body.username = null;
-  }else if (!isUsernameValid(req.body.username)) result.error.push("invalidUsername");
+  } else if (!isUsernameValid(req.body.username)) result.error.push("invalidUsername");
   if (!isPasswordValid(req.body.password)) result.error.push("invalidPassword");
 
   if (result.error.length == 0) {
@@ -162,7 +162,7 @@ router.post('/read', async function (req, res) {
     var row = await database.oneOrNone("SELECT * FROM users WHERE token=$(token)", req.body);
     if (row) {
       result.data = row;
-      result.data.name={
+      result.data.name = {
         first: row.first_name,
         last: row.last_name
       };
@@ -224,17 +224,22 @@ router.post('/purchase', async function (req, res) {
 
   if (!isRequestValid(req)) result.error.push("invalidRequest");
   if (!isTokenValid(req.body.token)) result.error.push('invalidToken');
-  if (req.body.amount<1 || req.body.amount>100) result.error.push('invalidAmount');
+  if (req.body.amount < 1 || req.body.amount > 100) result.error.push('invalidAmount');
   if (result.error.length == 0) {
     var row = await database.oneOrNone("SELECT id FROM users WHERE token=$(token)", req.body);
     if (row) {
       req.body.id = row.id;
       req.body.time = Date.now();
-      await database.none('UPDATE storageunits SET owner_id=$(id), time_purchased=$(time) WHERE owner_id=-1 LIMIT $(amount)', req.body);
+      try {
+        await database.none('UPDATE storageunits SET owner_id=$(id), time_purchased=$(time) WHERE address IN (SELECT address FROM storageunits WHERE owner_id=-1 LIMIT '+parseInt(req.body.amount)+')', req.body);
+      } catch (err) {
+        console.log(err);
+        result.error.push('invalidAmount');
+      }
       result.data = {
         amount: req.body.amount
       }
-    }else{
+    } else {
       result.error.push("wrongOrExpiredToken");
     }
   }

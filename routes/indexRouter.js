@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var fs = require('fs');
 router.all('/', function (req, res, next) {
-  console.log('Time: ' + (new Date()).toLocaleString());
+  console.log('New connection from ' + req.connection.remoteAddress + ' at ' +(new Date()).toLocaleString());
   next();
 });
 

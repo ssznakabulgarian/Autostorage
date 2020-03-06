@@ -1,25 +1,40 @@
 window.onRedirect.push(function () {
+    if (!localStorage.getItem('token')) return;
     if (window.currentPage != "storage_purchase.html") return;
-    else {
-        var storageUnitPrice = 2.99,
-            vatRate = 20;
-        setUtilityVars();
-        purchaseStorageNumberInput.onchange = () => {
-            purchaseStorageNumber = purchaseStorageNumberInput.valueAsNumber;
-            purchasePriceSpan.innerHTML = 'Price per hour (will be added to liabilities upon submission): $' + purchaseStorageNumber * storageUnitPrice * (100 + vatRate) / 100 + '/ hour';
-        }
-        purchaseSubmitButton.onclick = () => {
-            purchaseStorageNumber = purchaseStorageNumberInput.valueAsNumber;
-            if (!confirm('Are you sure you want to purchase ' + purchaseStorageNumber + ' storage units for $' + purchaseStorageNumber * storageUnitPrice * (100 + vatRate) / 100 + '/ hour ?')) return;
-            request('/users/purchase', null, {
-                token: localStorage.getItem('token'),
-                amount: purchaseStorageNumber
-            }, (success, result, error, e) => {
-                if (!success) handleErrors(error);
-                else {
-                    console.log(result);
-                }
-            });
-        }
+    
+    setUtilityVars();
+
+    if (navbarNameElement) request('/users/read', null, {
+        token: localStorage.getItem('token')
+    }, (success, result, error, e) => {
+        if (!success) handleErrors(error);
+        else navbarNameElement.innerHTML = result.name.first + ' ' + result.name.last;
+    });
+    
+    if (cardsUpdateInterval) clearInterval(cardsUpdateInterval);
+    
+    var storageUnitPrice = 2.4916,
+        vatRate = 20;
+    var price = () => {
+        purchaseStorageNumber = purchaseStorageNumberInput.valueAsNumber;
+        return Math.floor((purchaseStorageNumber * storageUnitPrice * (100 + vatRate) / 100) * 100) / 100;
+    }
+    purchaseStorageNumberInput.onkeydown = purchaseStorageNumberInput.onkeyup = purchaseStorageNumberInput.onclick = () => {
+        purchaseStorageNumber = purchaseStorageNumberInput.valueAsNumber;
+        purchasePriceSpan.innerHTML = 'Price per hour (will be added to liabilities upon submission): $' + price() + '/ hour';
+    }
+    purchaseSubmitButton.onclick = () => {
+        purchaseStorageNumber = purchaseStorageNumberInput.valueAsNumber;
+        if (!confirm('Are you sure you want to purchase ' + purchaseStorageNumber + ' storage units for $' + price() + '/ hour ?')) return;
+        request('/users/purchase', null, {
+            token: localStorage.getItem('token'),
+            amount: purchaseStorageNumber
+        }, (success, result, error, e) => {
+            if (!success) handleErrors(error);
+            else {
+                console.log(result);
+                redirect('dashboard.html');
+            }
+        });
     }
 });
