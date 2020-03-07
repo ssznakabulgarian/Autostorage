@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>Dashboard - Auto Store</title>
+    <title>Operations History - Auto Store</title>
     <meta property="og:type" content="website">
     <meta name="description" content="We provide a quick and easy solution for small businesses / cutomers who need to outsource their warehousing services. This platform allows you to buy storage units, store your items and access them at any moment easily.">
     <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
@@ -146,31 +146,35 @@
             </nav>
             <div class="container-fluid" id="main-cards-container">
                 <div class="d-sm-flex justify-content-between align-items-center mb-4">
-                    <h3 class="text-dark mb-0">Dashboard</h3>
+                    <h3 class="text-dark mb-0">Operations history</h3>
                 </div>
                 <div class="row">
                     <div class="col">
                         <div class="card shadow mb-4">
                             <div class="card-header py-3">
-                                <h6 class="text-primary font-weight-bold m-0">My storage units</h6>
-                            </div>
+                                <h6 class="text-primary font-weight-bold m-0">My operaions</h6><button class="btn btn-primary" id="operations-table-refresh-button" type="button" style="position: absolute;right: 2rem;top: 0.5rem;"><i class="fa fa-refresh"></i></button></div>
                             <div class="card-body">
-                                <div class="row" id="my-storage-units-crads-container">
-                                    <div class="col-md-6 col-xl-3 offset-lg-0 mb-4 storage-unit-card" id="storage-unit-card">
-                                        <div class="card shadow border-left-primary py-2">
-                                            <div class="card-body">
-                                                <div class="row align-items-center">
-                                                    <div class="col mr-1">
-                                                        <div class="text-uppercase text-primary font-weight-bold mb-1 h-4"><span id="nameElement">name</span></div>
-                                                        <div class="text-dark font-weight-bold text-xs card-text"><span id="descriptionElement">description</span></div>
-                                                    </div>
-                                                    <div class="col flex-nowrap">
-                                                        <div class="text-dark font-weight-bold text-xs mb-2"><span id="statusElement">status</span></div>
-                                                        <div class="text-dark font-weight-bold text-xs mb-2"><span id="timeFilledElement">time filled</span></div>
-                                                        <div class="text-dark font-weight-bold text-xs"><span id="codeElement">code</span></div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                <div class="row">
+                                    <div class="col" id="operations-table-container">
+                                        <div class="table-responsive table-bordered">
+                                            <table class="table table-bordered table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>type</th>
+                                                        <th>item</th>
+                                                        <th>status</th>
+                                                        <th>date</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="operations-table-main">
+                                                    <tr id="operations-table-row">
+                                                        <td>Cell 1</td>
+                                                        <td>Cell 2</td>
+                                                        <td>Cell 3</td>
+                                                        <td>Cell 4</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 </div>
@@ -178,72 +182,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="row" id="import-card">
-                    <div class="col">
-                        <div class="card shadow mb-4">
-                            <div class="card-header py-3">
-                                <p class="text-primary m-0 font-weight-bold">Import</p>
-                            </div>
-                            <div class="card-body">
-                                <form>
-                                    <div class="form-group"><label for="address"><strong>Name</strong><br></label><input class="form-control" type="text" id="import-item-name" placeholder="the name of the item you will be storing here" name="name"></div>
-                                    <div class="form-group"><label for="address"><strong>Description</strong><br></label><input class="form-control" type="text" id="import-item-description" placeholder="a description of the item or notes to go along with it" name="description"></div>
-                                    <div
-                                        class="form-row">
-                                        <div class="col">
-                                            <div class="form-group"><button class="btn btn-primary btn-sm" id="import-submit-button">Import</button></div>
-                                        </div>
-                            </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row" id="export-card">
-                <div class="col">
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <p class="text-primary m-0 font-weight-bold">Export</p>
-                        </div>
-                        <div class="card-body">
-                            <form>
-                                <div class="form-row">
-                                    <div class="col">
-                                        <div class="form-group"><button class="btn btn-primary btn-sm" id="export-submit-button">Export</button></div>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row" id="maintenance-card">
-                <div class="col">
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <p class="text-primary m-0 font-weight-bold">Maintenance<br></p>
-                        </div>
-                        <div class="card-body">
-                            <form>
-                                <div class="form-row">
-                                    <div class="col">
-                                        <div class="form-group"><button class="btn btn-primary btn-sm" id="release-submit-button">Release</button></div>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
-    </div>
-    <footer class="bg-white sticky-footer">
-        <div class="container my-auto">
-            <div class="text-center my-auto copyright"><span>Copyright © Auto Store 2020</span></div>
-        </div>
-    </footer>
-    </div>
-    </div><a class="border rounded d-inline scroll-to-top" onclick="document.scrollTop = 0;"><i class="fas fa-angle-up"></i></a>
+        <footer class="bg-white sticky-footer">
+            <div class="container my-auto">
+                <div class="text-center my-auto copyright"><span>Copyright © Auto Store 2020</span></div>
+            </div>
+        </footer>
+    </div><a class="border rounded d-inline scroll-to-top" onclick="document.scrollTop = 0;"><i class="fas fa-angle-up"></i></a></div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>

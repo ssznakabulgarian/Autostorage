@@ -139,6 +139,10 @@ var importCard,
     liabilitiesTable,
     liabilitiesTableRow,
     liabilitiesTableRowTemplate,
+    operationsTableContainer,
+    operationsTable,
+    operationsTableRow,
+    operationsTableRowTemplate,
     cardsContainerElement,
     liabilitiesTableRefreshButton,
     cardsUpdateInterval;
@@ -154,6 +158,10 @@ function setUtilityVars() {
     liabilitiesTable = document.getElementById('liabilities-table-main');
     liabilitiesTableRow = document.getElementById('liabilities-table-row');
     liabilitiesTableRefreshButton = document.getElementById('liabilities-table-refresh-button');
+    operationsTableContainer = document.getElementById('operations-table-container');
+    operationsTable = document.getElementById('operations-table-main');
+    operationsTableRow = document.getElementById('operations-table-row');
+    operationsTableRefreshButton = document.getElementById('operations-table-refresh-button');
     if (importCard) {
         importCardTemplate = importCard.cloneNode(true);
         importCard.parentElement.removeChild(importCard);
@@ -173,6 +181,10 @@ function setUtilityVars() {
     if (liabilitiesTableRow) {
         liabilitiesTableRowTemplate = liabilitiesTableRow.cloneNode(true);
         liabilitiesTableRow.parentElement.removeChild(liabilitiesTableRow);
+    }
+    if (operationsTableRow) {
+        operationsTableRowTemplate = operationsTableRow.cloneNode(true);
+        operationsTableRow.parentElement.removeChild(operationsTableRow);
     }
     navbarNameElement = document.getElementById('navbar-user-name');
     logoutButton = document.getElementById("logout-button");
@@ -410,7 +422,6 @@ function genStorageUnitCards() {
 
 function genLiabilitiesTable() {
     var tmp;
-
     request('/warehouse/list_liabilities', null, {token: localStorage.getItem('token')}, (success, result, error, e)=>{
         if(!success) handleErrors(error);
         else{
@@ -426,6 +437,28 @@ function genLiabilitiesTable() {
                 date.setTime(element.date);
                 tmp.children[3].innerHTML = date.toLocaleString();
                 liabilitiesTable.appendChild(tmp);
+            });
+        }
+    });
+}
+
+function genOperationsTable() {
+    var tmp;
+    request('/warehouse/list_operations', null, {token: localStorage.getItem('token')}, (success, result, error, e)=>{
+        if(!success) handleErrors(error);
+        else{
+            while(operationsTable.firstElementChild){
+                operationsTable.removeChild(operationsTable.firstElementChild)
+            }
+            result.forEach((element)=>{
+                tmp = operationsTableRowTemplate.cloneNode(true);
+                tmp.children[0].innerHTML = element.type;
+                tmp.children[1].innerHTML = element.name;
+                tmp.children[2].innerHTML = element.status;
+                var date = new Date();
+                date.setTime(element.time_added);
+                tmp.children[3].innerHTML = date.toLocaleString();
+                operationsTable.appendChild(tmp);
             });
         }
     });

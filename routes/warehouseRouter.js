@@ -187,6 +187,25 @@ router.post('/list_liabilities', async function (req, res) {
     res.json(result);
 });
 
+router.post('/list_operations', async function (req, res) {
+    var result = {
+        error: [],
+        data: null
+    };
+    if (!isRequestValid(req)) result.error.push("invalidRequest");
+    if (!isTokenValid(req.body.token)) result.error.push("invalidToken");
+    if (result.error.length == 0) {
+        var row = await database.oneOrNone("SELECT id FROM users WHERE token = $(token)", req.body);
+        if (row) {
+            req.body.id = row.id;
+            result.data = await database.manyOrNone("SELECT type, (SELECT name FROM storageunits WHERE address=operations.address OR address=operations.destination), status, time_added FROM operations WHERE address IN (SELECT address FROM storageunits WHERE owner_id=4) OR destination IN (SELECT address FROM storageunits WHERE owner_id=4)", req.body);
+        } else {
+            result.error.push("wrongOrExpiredToken");
+        }
+    }
+    res.json(result);
+});
+
 router.post('/list_available_slots', async function (req, res) {
     var result = {
         error: [],

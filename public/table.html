@@ -19,7 +19,7 @@
     <div id="wrapper">
         <nav class="navbar navbar-dark align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0">
             <div class="container-fluid d-flex flex-column p-0">
-                <a class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="#">
+                <a class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="/">
                     <div class="sidebar-brand-icon rotate-n-15"><i class="fas fa-laugh-wink"></i></div>
                     <div class="sidebar-brand-text mx-3"><span>Auto Store</span></div>
                 </a>
@@ -28,6 +28,7 @@
                     <li class="nav-item" role="presentation"><a class="nav-link" onclick="redirect(&#39;dashboard.html&#39;)"><i class="fas fa-tachometer-alt"></i><span style="color: rgb(255,255,255);">Dashboard</span></a></li>
                     <li class="nav-item" role="presentation"><a class="nav-link" onclick="redirect(&#39;storage_purchase.html&#39;)"><i class="fas fa-dollar-sign"></i><span style="color: rgb(255,255,255);">Purchase</span></a></li>
                     <li class="nav-item" role="presentation"><a class="nav-link" onclick="redirect(&#39;finances.html&#39;)"><i class="fas fa-file-invoice-dollar"></i><span style="color: rgb(255,255,255);">Finances</span></a></li>
+                    <li class="nav-item" role="presentation"><a class="nav-link" onclick="redirect(&#39;operations_history.html&#39;)"><i class="fas fa-file-invoice"></i><span style="color: rgb(255,255,255);">Operations history</span></a></li>
                 </ul>
                 <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
             </div>
@@ -289,7 +290,7 @@
                 <div class="text-center my-auto copyright"><span>Copyright © Auto Store 2020</span></div>
             </div>
         </footer>
-    </div><a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a></div>
+    </div><a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a></div><a class="border rounded d-inline scroll-to-top" onclick="document.scrollTop = 0;"><i class="fas fa-angle-up"></i></a>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
@@ -298,6 +299,7 @@
     <script src="assets/js/login-register-handler.js"></script>
     <script src="assets/js/dashboard.js"></script>
     <script src="assets/js/finances.js"></script>
+    <script src="assets/js/operations.js"></script>
     <script src="assets/js/purchase.js"></script>
 </body>
 
