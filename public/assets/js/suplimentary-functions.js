@@ -452,11 +452,12 @@ function genLiabilitiesTable() {
             result.forEach((element) => {
                 tmp = liabilitiesTableRowTemplate.cloneNode(true);
                 tmp.children[0].innerHTML = element.type;
-                tmp.children[1].innerHTML = element.value;
-                tmp.children[2].innerHTML = element.state == 'not_paid' ? 'not paid' : 'paid';
+                tmp.children[1].innerHTML = element.item_name;
+                tmp.children[2].innerHTML = element.value;
+                tmp.children[3].innerHTML = element.state == 'not_paid' ? 'not paid' : 'paid';
                 var date = new Date();
                 date.setTime(element.date);
-                tmp.children[3].innerHTML = date.toLocaleString();
+                tmp.children[4].innerHTML = date.toLocaleString();
                 liabilitiesTable.appendChild(tmp);
             });
         }
@@ -476,7 +477,7 @@ function genOperationsTable() {
             result.forEach((element) => {
                 tmp = operationsTableRowTemplate.cloneNode(true);
                 tmp.children[0].innerHTML = element.type;
-                tmp.children[1].innerHTML = element.name;
+                tmp.children[1].innerHTML = element.item_name;
                 tmp.children[2].innerHTML = element.status;
                 var date = new Date();
                 date.setTime(element.time_added);
