@@ -31,7 +31,7 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 
 --
--- Name: failed_login(integer); Type: FUNCTION; Schema: public; Owner: admin
+-- Name: failed_login(integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
 CREATE FUNCTION public.failed_login(a integer) RETURNS void
@@ -41,10 +41,10 @@ UPDATE users SET failed_logins=(SELECT failed_logins FROM users WHERE id=a)+1 WH
 $$;
 
 
-ALTER FUNCTION public.failed_login(a integer) OWNER TO admin;
+ALTER FUNCTION public.failed_login(a integer) OWNER TO postgres;
 
 --
--- Name: has_too_many_failed_logins(integer); Type: FUNCTION; Schema: public; Owner: admin
+-- Name: has_too_many_failed_logins(integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
 CREATE FUNCTION public.has_too_many_failed_logins(a integer) RETURNS boolean
@@ -54,10 +54,10 @@ SELECT (failed_logins > 10) FROM users WHERE id=a
 $$;
 
 
-ALTER FUNCTION public.has_too_many_failed_logins(a integer) OWNER TO admin;
+ALTER FUNCTION public.has_too_many_failed_logins(a integer) OWNER TO postgres;
 
 --
--- Name: reset_failed_logins(integer); Type: FUNCTION; Schema: public; Owner: admin
+-- Name: reset_failed_logins(integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
 CREATE FUNCTION public.reset_failed_logins(a integer) RETURNS void
@@ -67,10 +67,10 @@ UPDATE users SET failed_logins=0 WHERE id=a
 $$;
 
 
-ALTER FUNCTION public.reset_failed_logins(a integer) OWNER TO admin;
+ALTER FUNCTION public.reset_failed_logins(a integer) OWNER TO postgres;
 
 --
--- Name: liabilities_id; Type: SEQUENCE; Schema: public; Owner: admin
+-- Name: liabilities_id; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
 CREATE SEQUENCE public.liabilities_id
@@ -81,14 +81,14 @@ CREATE SEQUENCE public.liabilities_id
     CACHE 1;
 
 
-ALTER TABLE public.liabilities_id OWNER TO admin;
+ALTER TABLE public.liabilities_id OWNER TO postgres;
 
 SET default_tablespace = '';
 
 SET default_with_oids = false;
 
 --
--- Name: liabilities; Type: TABLE; Schema: public; Owner: admin
+-- Name: liabilities; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.liabilities (
@@ -101,10 +101,10 @@ CREATE TABLE public.liabilities (
 );
 
 
-ALTER TABLE public.liabilities OWNER TO admin;
+ALTER TABLE public.liabilities OWNER TO postgres;
 
 --
--- Name: operation_id; Type: SEQUENCE; Schema: public; Owner: admin
+-- Name: operation_id; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
 CREATE SEQUENCE public.operation_id
@@ -115,10 +115,10 @@ CREATE SEQUENCE public.operation_id
     CACHE 1;
 
 
-ALTER TABLE public.operation_id OWNER TO admin;
+ALTER TABLE public.operation_id OWNER TO postgres;
 
 --
--- Name: operations; Type: TABLE; Schema: public; Owner: admin
+-- Name: operations; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.operations (
@@ -133,10 +133,10 @@ CREATE TABLE public.operations (
 );
 
 
-ALTER TABLE public.operations OWNER TO admin;
+ALTER TABLE public.operations OWNER TO postgres;
 
 --
--- Name: storageunits; Type: TABLE; Schema: public; Owner: admin
+-- Name: storageunits; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.storageunits (
@@ -150,7 +150,7 @@ CREATE TABLE public.storageunits (
 );
 
 
-ALTER TABLE public.storageunits OWNER TO admin;
+ALTER TABLE public.storageunits OWNER TO postgres;
 
 --
 -- Name: user_id; Type: SEQUENCE; Schema: public; Owner: postgres
@@ -186,7 +186,7 @@ CREATE TABLE public.users (
 ALTER TABLE public.users OWNER TO postgres;
 
 --
--- Data for Name: liabilities; Type: TABLE DATA; Schema: public; Owner: admin
+-- Data for Name: liabilities; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.liabilities (user_id, type, value, state, id, date) FROM stdin;
@@ -212,21 +212,21 @@ COPY public.liabilities (user_id, type, value, state, id, date) FROM stdin;
 
 
 --
--- Name: liabilities_id; Type: SEQUENCE SET; Schema: public; Owner: admin
+-- Name: liabilities_id; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
 SELECT pg_catalog.setval('public.liabilities_id', 36, true);
 
 
 --
--- Name: operation_id; Type: SEQUENCE SET; Schema: public; Owner: admin
+-- Name: operation_id; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
 SELECT pg_catalog.setval('public.operation_id', 50, true);
 
 
 --
--- Data for Name: operations; Type: TABLE DATA; Schema: public; Owner: admin
+-- Data for Name: operations; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.operations (id, type, status, time_added, code, destination, address, item_name) FROM stdin;
@@ -268,7 +268,7 @@ COPY public.operations (id, type, status, time_added, code, destination, address
 
 
 --
--- Data for Name: storageunits; Type: TABLE DATA; Schema: public; Owner: admin
+-- Data for Name: storageunits; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.storageunits (address, owner_id, name, time_purchased, description, status, operation_code) FROM stdin;
@@ -324,7 +324,7 @@ COPY public.users (id, first_name, last_name, username, password, email, age, fa
 
 
 --
--- Name: storageunits address_PK; Type: CONSTRAINT; Schema: public; Owner: admin
+-- Name: storageunits address_PK; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.storageunits
@@ -332,7 +332,7 @@ ALTER TABLE ONLY public.storageunits
 
 
 --
--- Name: operations id_PK; Type: CONSTRAINT; Schema: public; Owner: admin
+-- Name: operations id_PK; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.operations
@@ -340,7 +340,7 @@ ALTER TABLE ONLY public.operations
 
 
 --
--- Name: liabilities liabilities_id_PK; Type: CONSTRAINT; Schema: public; Owner: admin
+-- Name: liabilities liabilities_id_PK; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.liabilities
