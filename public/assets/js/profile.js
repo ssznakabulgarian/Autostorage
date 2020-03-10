@@ -7,9 +7,5 @@ window.onRedirect.push(function () {
     
     if (cardsUpdateInterval) clearInterval(cardsUpdateInterval);
 
-    if (liabilitiesTableRefreshButton) {
-        liabilitiesTableRefreshButton.addEventListener('click', () => {
-            genLiabilitiesTable();
-        });
-    }
+    //profile stuff here
 });

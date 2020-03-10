@@ -149,7 +149,7 @@ router.post('/export', async function (req, res) {
     res.json(result);
 })
 
-router.post('/list', async function (req, res) {
+router.post('/list_storage_units', async function (req, res) {
     var result = {
         error: [],
         data: null
@@ -198,7 +198,7 @@ router.post('/list_operations', async function (req, res) {
         var row = await database.oneOrNone("SELECT id FROM users WHERE token = $(token)", req.body);
         if (row) {
             req.body.id = row.id;
-            result.data = await database.manyOrNone("SELECT type, (SELECT name FROM storageunits WHERE address=operations.address OR address=operations.destination), status, time_added FROM operations WHERE address IN (SELECT address FROM storageunits WHERE owner_id=4) OR destination IN (SELECT address FROM storageunits WHERE owner_id=4)", req.body);
+            result.data = await database.manyOrNone("SELECT type, (SELECT name FROM storageunits WHERE address=operations.address OR address=operations.destination), status, time_added FROM operations WHERE address IN (SELECT address FROM storageunits WHERE owner_id=$(id)) OR destination IN (SELECT address FROM storageunits WHERE owner_id=$(id)) ORDER BY time_added ASC", req.body);
         } else {
             result.error.push("wrongOrExpiredToken");
         }
@@ -261,7 +261,7 @@ router.post('/operation_event', async function (req, res) {
                 
                 await database.none("INSERT INTO liabilities(user_id, type, value, state, date) VALUES((SELECT owner_id FROM storageunits WHERE operation_code = (SELECT code FROM operations WHERE id=$(operation.id))), $(operation.type), $(price), 'not_paid', $(time))", req.body);
                 if (req.body.operation.type == 'import') {
-                    await database.none("UPDATE storageunits SET status='taken', operation_code=NULL WHERE address=(SELECT destination FROM operations WHERE id=$(operation.id))", req.body);
+                    await database.none("UPDATE storageunits SET status='occupied', operation_code=NULL WHERE address=(SELECT destination FROM operations WHERE id=$(operation.id))", req.body);
                 } else if (req.body.operation.type == 'export') {
                     await database.none("UPDATE storageunits SET status='vacant', operation_code=NULL WHERE address=(SELECT address FROM operations WHERE id=$(operation.id))", req.body);
                 }

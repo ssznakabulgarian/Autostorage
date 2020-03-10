@@ -60,9 +60,6 @@ function redirect(page) {
             fireRedirect();
         }
     });
-    //!!! store the [static]pages somehow, so they don't !!!
-    //!!! have to be loaded with a new request each time !!!
-    //on second thoughts the browser already does that so...
 }
 
 function handleErrors(errors) {
@@ -126,7 +123,6 @@ var importCard,
     localStorage,
     loginButton,
     registerButton,
-    logoutButton,
     openProfileEditButton,
     purchasePriceSpan,
     purchaseStorageNumber,
@@ -148,20 +144,22 @@ var importCard,
     cardsUpdateInterval;
 
 function setUtilityVars() {
+    // ------ window/general ------
+    localStorage = window.localStorage;
+    navbarNameElement = document.getElementById('navbar-user-name');
+    if (navbarNameElement) request('/users/read', null, {
+        token: localStorage.getItem('token')
+    }, (success, result, error, e) => {
+        if (!success) handleErrors(error);
+        else navbarNameElement.innerHTML = result.name.first + ' ' + result.name.last;
+    });
+    // ------ dashboard ------
     dashboardMainContainer = document.getElementById('main-cards-container');
     importCard = document.getElementById('import-card');
     exportCard = document.getElementById('export-card');
     maintenanceCard = document.getElementById('maintenance-card');
     storageUnitCard = document.getElementById('storage-unit-card');
     cardsContainerElement = document.getElementById('my-storage-units-crads-container');
-    liabilitiesTableContainer = document.getElementById('my-liabilities-table-container');
-    liabilitiesTable = document.getElementById('liabilities-table-main');
-    liabilitiesTableRow = document.getElementById('liabilities-table-row');
-    liabilitiesTableRefreshButton = document.getElementById('liabilities-table-refresh-button');
-    operationsTableContainer = document.getElementById('operations-table-container');
-    operationsTable = document.getElementById('operations-table-main');
-    operationsTableRow = document.getElementById('operations-table-row');
-    operationsTableRefreshButton = document.getElementById('operations-table-refresh-button');
     if (importCard) {
         importCardTemplate = importCard.cloneNode(true);
         importCard.parentElement.removeChild(importCard);
@@ -178,28 +176,35 @@ function setUtilityVars() {
         storageUnitCardTemplate = storageUnitCard.cloneNode(true);
         storageUnitCard.parentElement.removeChild(storageUnitCard);
     }
+    // ------ liabilities ------
+    liabilitiesTableContainer = document.getElementById('my-liabilities-table-container');
+    liabilitiesTable = document.getElementById('liabilities-table-main');
+    liabilitiesTableRow = document.getElementById('liabilities-table-row');
+    liabilitiesTableRefreshButton = document.getElementById('liabilities-table-refresh-button');
     if (liabilitiesTableRow) {
         liabilitiesTableRowTemplate = liabilitiesTableRow.cloneNode(true);
         liabilitiesTableRow.parentElement.removeChild(liabilitiesTableRow);
     }
+    // ------ operations ------
+    operationsTableContainer = document.getElementById('operations-table-container');
+    operationsTable = document.getElementById('operations-table-main');
+    operationsTableRow = document.getElementById('operations-table-row');
+    operationsTableRefreshButton = document.getElementById('operations-table-refresh-button');
     if (operationsTableRow) {
         operationsTableRowTemplate = operationsTableRow.cloneNode(true);
         operationsTableRow.parentElement.removeChild(operationsTableRow);
     }
-    navbarNameElement = document.getElementById('navbar-user-name');
-    logoutButton = document.getElementById("logout-button");
-    openProfileEditButton = document.getElementById("open-profile-edit-button");
+    // ------ login/register ------
     loginButton = document.getElementById("login-button");
     registerButton = document.getElementById("register-button");
+    // ------ purchse ------
     purchasePriceSpan = document.getElementById('storage-unit-purchase-price-span');
     purchaseStorageNumberInput = document.getElementById('storage-unit-purchase-number');
     purchaseSubmitButton = document.getElementById('storage-unit-purchase-submit-button');
-    localStorage = window.localStorage;
 }
 
 function msToTime(duration) {
-    var milliseconds = parseInt((duration % 1000) / 100),
-        seconds = Math.floor((duration / 1000) % 60),
+    var seconds = Math.floor((duration / 1000) % 60),
         minutes = Math.floor((duration / (1000 * 60)) % 60),
         hours = Math.floor(duration / (1000 * 60 * 60));
 
@@ -210,6 +215,18 @@ function msToTime(duration) {
     return hours + ":" + minutes + ":" + seconds;
 }
 
+function logout() {
+    if (localStorage.getItem('token')) {
+        request('/users/logout', null, {
+            token: localStorage.getItem('token')
+        }, (success, result, err, e) => {
+            if (!success) handleErrors(err);
+            else alert("successfully logged out: " + result.name.first + " " + result.name.last);
+            localStorage.removeItem('token');
+            redirect("login.html");
+        });
+    }
+}
 
 function closeExportDialogue() {
     var card = document.getElementById('export-card');
@@ -229,25 +246,25 @@ function closeMaintenanceDialogue() {
     isMaintenanceDialogueOpen = false;
 }
 
-function setAvailableSlots(element) {
-    var availableSlotsContainer = element.firstElementChild.firstElementChild.lastElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.lastElementChild.firstElementChild;
-    var availableSlotTemplate = element.firstElementChild.firstElementChild.lastElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.cloneNode(true);
-    availableSlotsContainer.removeChild(element.firstElementChild.firstElementChild.lastElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild);
-    request('/warehouse/list_available_slots', null, {
-        data: 'data'
-    }, (success, result, error, e) => {
-        if (!success) handleErrors(error);
-        else {
-            result.forEach(element => {
-                var availableSlotTmp = availableSlotTemplate.cloneNode(true);
-                availableSlotTmp.setAttribute('value', element.address);
-                availableSlotTmp.innerHTML = element.name;
-                availableSlotsContainer.appendChild(availableSlotTmp);
-            });
-            availableSlotsContainer.firstElementChild.setAttribute('selected', '');
-        }
-    });
-}
+// function setAvailableSlots(element) {
+//     var availableSlotsContainer = element.firstElementChild.firstElementChild.lastElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.lastElementChild.firstElementChild;
+//     var availableSlotTemplate = element.firstElementChild.firstElementChild.lastElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.cloneNode(true);
+//     availableSlotsContainer.removeChild(element.firstElementChild.firstElementChild.lastElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild);
+//     request('/warehouse/list_available_slots', null, {
+//         data: 'data'
+//     }, (success, result, error, e) => {
+//         if (!success) handleErrors(error);
+//         else {
+//             result.forEach(element => {
+//                 var availableSlotTmp = availableSlotTemplate.cloneNode(true);
+//                 availableSlotTmp.setAttribute('value', element.address);
+//                 availableSlotTmp.innerHTML = element.name;
+//                 availableSlotsContainer.appendChild(availableSlotTmp);
+//             });
+//             availableSlotsContainer.firstElementChild.setAttribute('selected', '');
+//         }
+//     });
+// }
 
 function openExportDialogue(item) {
     if (isExportDialogueOpen) closeExportDialogue();
@@ -280,7 +297,7 @@ function updateCards() {
     if (isExportDialogueOpen) closeExportDialogue();
     if (isImportDialogueOpen) closeImportDialogue();
     if (isMaintenanceDialogueOpen) closeMaintenanceDialogue();
-    //genStorageUnitCards();
+    genStorageUnitCards();
 }
 
 function openImportDialogue(item) {
@@ -296,7 +313,6 @@ function openImportDialogue(item) {
         e.preventDefault();
         request('/warehouse/import', null, {
             token: localStorage.getItem('token'),
-            //  slot: document.getElementById('import-slot-select').value,
             item: {
                 name: document.getElementById('import-item-name').value,
                 description: document.getElementById('import-item-description').value,
@@ -340,7 +356,7 @@ function openMaintenanceDialogue(item) {
 function genStorageUnitCards() {
     var cardType, template, currentCard, codeElement, nameElement, descriptionElement, statusElement, timeOwnedElement;
 
-    request('/warehouse/list', null, {
+    request('/warehouse/list_storage_units', null, {
         token: localStorage.getItem('token')
     }, (success, result, error, e) => {
         if (!success) handleErrors(error);
@@ -362,7 +378,7 @@ function genStorageUnitCards() {
                     case 'vacant':
                         cardType = 'danger';
                         break;
-                    case 'taken':
+                    case 'occupied':
                         cardType = 'success';
                         break;
                     case 'processing':
@@ -405,7 +421,7 @@ function genStorageUnitCards() {
                             case 'processing':
                                 updateCards();
                                 break;
-                            case 'taken':
+                            case 'occupied':
                                 openExportDialogue(element);
                                 break;
                         }
@@ -422,13 +438,15 @@ function genStorageUnitCards() {
 
 function genLiabilitiesTable() {
     var tmp;
-    request('/warehouse/list_liabilities', null, {token: localStorage.getItem('token')}, (success, result, error, e)=>{
-        if(!success) handleErrors(error);
-        else{
-            while(liabilitiesTable.firstElementChild){
+    request('/warehouse/list_liabilities', null, {
+        token: localStorage.getItem('token')
+    }, (success, result, error, e) => {
+        if (!success) handleErrors(error);
+        else {
+            while (liabilitiesTable.firstElementChild) {
                 liabilitiesTable.removeChild(liabilitiesTable.firstElementChild)
             }
-            result.forEach((element)=>{
+            result.forEach((element) => {
                 tmp = liabilitiesTableRowTemplate.cloneNode(true);
                 tmp.children[0].innerHTML = element.type;
                 tmp.children[1].innerHTML = element.value;
@@ -444,13 +462,15 @@ function genLiabilitiesTable() {
 
 function genOperationsTable() {
     var tmp;
-    request('/warehouse/list_operations', null, {token: localStorage.getItem('token')}, (success, result, error, e)=>{
-        if(!success) handleErrors(error);
-        else{
-            while(operationsTable.firstElementChild){
+    request('/warehouse/list_operations', null, {
+        token: localStorage.getItem('token')
+    }, (success, result, error, e) => {
+        if (!success) handleErrors(error);
+        else {
+            while (operationsTable.firstElementChild) {
                 operationsTable.removeChild(operationsTable.firstElementChild)
             }
-            result.forEach((element)=>{
+            result.forEach((element) => {
                 tmp = operationsTableRowTemplate.cloneNode(true);
                 tmp.children[0].innerHTML = element.type;
                 tmp.children[1].innerHTML = element.name;

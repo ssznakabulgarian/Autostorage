@@ -3,13 +3,6 @@ window.onRedirect.push(function () {
     if (window.currentPage != "storage_purchase.html") return;
     
     setUtilityVars();
-
-    if (navbarNameElement) request('/users/read', null, {
-        token: localStorage.getItem('token')
-    }, (success, result, error, e) => {
-        if (!success) handleErrors(error);
-        else navbarNameElement.innerHTML = result.name.first + ' ' + result.name.last;
-    });
     
     if (cardsUpdateInterval) clearInterval(cardsUpdateInterval);
     

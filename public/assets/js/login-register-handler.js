@@ -1,25 +1,29 @@
 window.onRedirect.push(function () {
-    if (!localStorage.getItem('token')) return;
     if (window.currentPage != "login.html" && window.currentPage != "register.html" && window.currentPage != "forgot-password.html") return;
+    
     setUtilityVars();
-
-    loginButton.addEventListener("click", function (e) {
-        e.preventDefault();
-        var data = {
-            username: document.getElementById("username-input").value,
-            password: document.getElementById("password-input").value
-        };
-        request("/users/login", null, data, function (success, result, error, e) {
-            if (success) {
-                console.log(result);
-                localStorage.setItem('token', result.token);
-                redirect('dashboard.html');
-            } else {
-                handleErrors(error);
-            }
+    
+    if (cardsUpdateInterval) clearInterval(cardsUpdateInterval);
+    
+    if (loginButton) {
+        loginButton.addEventListener("click", function (e) {
+            e.preventDefault();
+            var data = {
+                username: document.getElementById("username-input").value,
+                password: document.getElementById("password-input").value
+            };
+            request("/users/login", null, data, function (success, result, error, e) {
+                if (success) {
+                    console.log(result);
+                    localStorage.setItem('token', result.token);
+                    redirect('dashboard.html');
+                } else {
+                    handleErrors(error);
+                }
+            });
+            return false;
         });
-        return false;
-    });
+    }
 
     if (registerButton) {
         registerButton.addEventListener("click", function (e) {
