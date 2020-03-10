@@ -86,6 +86,9 @@ function handleErrors(errors) {
             case 'invalidToken':
                 break;
             case 'wrongOrExpiredToken':
+                setTimeout(() => {
+                    redirect('login.html');
+                }, 2000);
                 break;
             case 'wrongPassword':
                 break;
