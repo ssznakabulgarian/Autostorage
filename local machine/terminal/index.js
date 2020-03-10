@@ -103,10 +103,10 @@ async function loadOperations() {
             secret: connectionSecret
         }, (error, result, body) => {
             if (error) {
-                printMessage(error);
+                //printMessage(error);
                 reject(error);
             } else if (body.error.length) {
-                printMessage(body.error);
+                //printMessage(body.error);
                 reject(body.error);
             } else {
                 resolve(body.data);
@@ -263,16 +263,29 @@ function main(connection) {
     })
     .then(()=>{
         setInterval(async () => {
-            operationsList = await loadOperations();
+            try{
+                operationsList = await loadOperations();
+            }catch(err){
+                printMessage('server unreachable ...');
+            }
         }, 1000);
         
         startOperation(connection);
     });
 }
-
+var check=false;
 async function manual() {
     setInterval(async () => {
-        operationsList = await loadOperations();
+        try{
+            operationsList = await loadOperations();
+            if(check){
+                printMessage('enter code: ');
+                check=false;
+            }
+        }catch(err){
+            printMessage('server unreachable ...');
+            check=true;
+        }
     }, 1000);
     startOperation();
 }
