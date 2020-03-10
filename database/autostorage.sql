@@ -6,15 +6,12 @@
 -- Dumped by pg_dump version 9.6.16
 
 SET statement_timeout = 0;
-SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
-SET row_security = off;
 
 --
 -- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
@@ -31,7 +28,7 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 
 --
--- Name: failed_login(integer); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: failed_login(integer); Type: FUNCTION; Schema: public; Owner: autostorage
 --
 
 CREATE FUNCTION public.failed_login(a integer) RETURNS void
@@ -41,10 +38,10 @@ UPDATE users SET failed_logins=(SELECT failed_logins FROM users WHERE id=a)+1 WH
 $$;
 
 
-ALTER FUNCTION public.failed_login(a integer) OWNER TO postgres;
+ALTER FUNCTION public.failed_login(a integer) OWNER TO autostorage;
 
 --
--- Name: has_too_many_failed_logins(integer); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: has_too_many_failed_logins(integer); Type: FUNCTION; Schema: public; Owner: autostorage
 --
 
 CREATE FUNCTION public.has_too_many_failed_logins(a integer) RETURNS boolean
@@ -54,10 +51,10 @@ SELECT (failed_logins > 10) FROM users WHERE id=a
 $$;
 
 
-ALTER FUNCTION public.has_too_many_failed_logins(a integer) OWNER TO postgres;
+ALTER FUNCTION public.has_too_many_failed_logins(a integer) OWNER TO autostorage;
 
 --
--- Name: reset_failed_logins(integer); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: reset_failed_logins(integer); Type: FUNCTION; Schema: public; Owner: autostorage
 --
 
 CREATE FUNCTION public.reset_failed_logins(a integer) RETURNS void
@@ -67,10 +64,10 @@ UPDATE users SET failed_logins=0 WHERE id=a
 $$;
 
 
-ALTER FUNCTION public.reset_failed_logins(a integer) OWNER TO postgres;
+ALTER FUNCTION public.reset_failed_logins(a integer) OWNER TO autostorage;
 
 --
--- Name: liabilities_id; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: liabilities_id; Type: SEQUENCE; Schema: public; Owner: autostorage
 --
 
 CREATE SEQUENCE public.liabilities_id
@@ -81,14 +78,14 @@ CREATE SEQUENCE public.liabilities_id
     CACHE 1;
 
 
-ALTER TABLE public.liabilities_id OWNER TO postgres;
+ALTER TABLE public.liabilities_id OWNER TO autostorage;
 
 SET default_tablespace = '';
 
 SET default_with_oids = false;
 
 --
--- Name: liabilities; Type: TABLE; Schema: public; Owner: postgres
+-- Name: liabilities; Type: TABLE; Schema: public; Owner: autostorage
 --
 
 CREATE TABLE public.liabilities (
@@ -101,10 +98,10 @@ CREATE TABLE public.liabilities (
 );
 
 
-ALTER TABLE public.liabilities OWNER TO postgres;
+ALTER TABLE public.liabilities OWNER TO autostorage;
 
 --
--- Name: operation_id; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: operation_id; Type: SEQUENCE; Schema: public; Owner: autostorage
 --
 
 CREATE SEQUENCE public.operation_id
@@ -115,10 +112,10 @@ CREATE SEQUENCE public.operation_id
     CACHE 1;
 
 
-ALTER TABLE public.operation_id OWNER TO postgres;
+ALTER TABLE public.operation_id OWNER TO autostorage;
 
 --
--- Name: operations; Type: TABLE; Schema: public; Owner: postgres
+-- Name: operations; Type: TABLE; Schema: public; Owner: autostorage
 --
 
 CREATE TABLE public.operations (
@@ -133,10 +130,10 @@ CREATE TABLE public.operations (
 );
 
 
-ALTER TABLE public.operations OWNER TO postgres;
+ALTER TABLE public.operations OWNER TO autostorage;
 
 --
--- Name: storageunits; Type: TABLE; Schema: public; Owner: postgres
+-- Name: storageunits; Type: TABLE; Schema: public; Owner: autostorage
 --
 
 CREATE TABLE public.storageunits (
@@ -150,10 +147,10 @@ CREATE TABLE public.storageunits (
 );
 
 
-ALTER TABLE public.storageunits OWNER TO postgres;
+ALTER TABLE public.storageunits OWNER TO autostorage;
 
 --
--- Name: user_id; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: user_id; Type: SEQUENCE; Schema: public; Owner: autostorage
 --
 
 CREATE SEQUENCE public.user_id
@@ -164,10 +161,10 @@ CREATE SEQUENCE public.user_id
     CACHE 1;
 
 
-ALTER TABLE public.user_id OWNER TO postgres;
+ALTER TABLE public.user_id OWNER TO autostorage;
 
 --
--- Name: users; Type: TABLE; Schema: public; Owner: postgres
+-- Name: users; Type: TABLE; Schema: public; Owner: autostorage
 --
 
 CREATE TABLE public.users (
@@ -183,10 +180,10 @@ CREATE TABLE public.users (
 );
 
 
-ALTER TABLE public.users OWNER TO postgres;
+ALTER TABLE public.users OWNER TO autostorage;
 
 --
--- Data for Name: liabilities; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: liabilities; Type: TABLE DATA; Schema: public; Owner: autostorage
 --
 
 COPY public.liabilities (user_id, type, value, state, id, date) FROM stdin;
@@ -212,21 +209,21 @@ COPY public.liabilities (user_id, type, value, state, id, date) FROM stdin;
 
 
 --
--- Name: liabilities_id; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: liabilities_id; Type: SEQUENCE SET; Schema: public; Owner: autostorage
 --
 
 SELECT pg_catalog.setval('public.liabilities_id', 36, true);
 
 
 --
--- Name: operation_id; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: operation_id; Type: SEQUENCE SET; Schema: public; Owner: autostorage
 --
 
 SELECT pg_catalog.setval('public.operation_id', 50, true);
 
 
 --
--- Data for Name: operations; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: operations; Type: TABLE DATA; Schema: public; Owner: autostorage
 --
 
 COPY public.operations (id, type, status, time_added, code, destination, address, item_name) FROM stdin;
@@ -268,7 +265,7 @@ COPY public.operations (id, type, status, time_added, code, destination, address
 
 
 --
--- Data for Name: storageunits; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: storageunits; Type: TABLE DATA; Schema: public; Owner: autostorage
 --
 
 COPY public.storageunits (address, owner_id, name, time_purchased, description, status, operation_code) FROM stdin;
@@ -296,14 +293,14 @@ COPY public.storageunits (address, owner_id, name, time_purchased, description, 
 
 
 --
--- Name: user_id; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: user_id; Type: SEQUENCE SET; Schema: public; Owner: autostorage
 --
 
 SELECT pg_catalog.setval('public.user_id', 13, true);
 
 
 --
--- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: autostorage
 --
 
 COPY public.users (id, first_name, last_name, username, password, email, age, failed_logins, token) FROM stdin;
@@ -311,7 +308,7 @@ COPY public.users (id, first_name, last_name, username, password, email, age, fa
 13	John	Smith	JohnSmith	ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f	smith@gmail.com	\N	0	MMPUpUH8u4ThMuaDdUJxlzYlzjmU9zGyfRBIsKCxihQduMmSvMbZvZ5xNNPyljcF
 3	Georgi	baldjie	asdasdasd	8bb0cf6eb9b17d0f7d22b456f121257dc1254e1f01665370476383ea776df414	gbaldjiev200s4@gmail.com	\N	0	\N
 1	George	Baldjiev	ssznakabulgarian	$2b$10$.nHjtpNhu6imxIRoBZBuPOLJbSC5Cv628FL7bu5QnJr8KmqqYS5ou	gbaldjiev2004@gmail.com	15	3	\N
-4	Georgi	asd	asdasd	688787d8ff144c502c7f5cffaafe2cc588d86079f9de88304c26b0cb99ce91c6	gbaldjiev20a04@gmail.com	\N	0	5D85rsY9FfaeboNg9UyRkhqdSVue59hvES5R1tImZ031hrMKrNbJbOVDdi5XYhrW
+4	Georgi	asd	asdasd	688787d8ff144c502c7f5cffaafe2cc588d86079f9de88304c26b0cb99ce91c6	gbaldjiev20a04@gmail.com	\N	0	QquUOHfCJTslZFWfBuB3naxwhWzcl2yZCyKaZ4OUuCNO5jZlmJ7RhliYtziJFNme
 6	Georgi	Baldjiev	myPhone	ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f	gbaldjiev20040@gmail.com	\N	0	\N
 5	Georgi	Baldjiev2	ssznakabg3	5fd924625f6ab16a19cc9807c7c506ae1813490e4ba675f843d5a10e0baacdb8	gbaldjiev2000@gmail.com	\N	0	TTqEeaiE3xOHw3vppE5xZucCBnac1aiAxz6GCdY8oPW1ZettsHSEv5O6kEimgxix
 8	asdasdsdasd	asdasdasdasdasd	asdasdasdasd	a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3	asdasdasdasd@gmail.com	\N	0	2eKTGgrvqSwRBhoECB8l9MzLn3pnxFXGztQz5MdVmg6v7DvllCLHXDTsrFbf4ke4
@@ -324,7 +321,7 @@ COPY public.users (id, first_name, last_name, username, password, email, age, fa
 
 
 --
--- Name: storageunits address_PK; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: storageunits address_PK; Type: CONSTRAINT; Schema: public; Owner: autostorage
 --
 
 ALTER TABLE ONLY public.storageunits
@@ -332,7 +329,7 @@ ALTER TABLE ONLY public.storageunits
 
 
 --
--- Name: operations id_PK; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: operations id_PK; Type: CONSTRAINT; Schema: public; Owner: autostorage
 --
 
 ALTER TABLE ONLY public.operations
@@ -340,7 +337,7 @@ ALTER TABLE ONLY public.operations
 
 
 --
--- Name: liabilities liabilities_id_PK; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: liabilities liabilities_id_PK; Type: CONSTRAINT; Schema: public; Owner: autostorage
 --
 
 ALTER TABLE ONLY public.liabilities
@@ -348,11 +345,21 @@ ALTER TABLE ONLY public.liabilities
 
 
 --
--- Name: users user_PK; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: users user_PK; Type: CONSTRAINT; Schema: public; Owner: autostorage
 --
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT "user_PK" PRIMARY KEY (id);
+
+
+--
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: autostorage
+--
+
+REVOKE ALL ON SCHEMA public FROM postgres;
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+GRANT ALL ON SCHEMA public TO autostorage;
+GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
 --
