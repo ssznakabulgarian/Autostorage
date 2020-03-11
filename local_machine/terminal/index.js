@@ -7,11 +7,11 @@ var connectionResponseString = "c",
     onData = null,
     awaitingCommand = false,
     processCommand = null,
-    mainServerAddress = 'http://localhost',
+    mainServerAddress = 'http://server.autostorage.online',
     connectionSecret = '_9e8a7s4y1s2t3o6r5e_',
     operationsList = [],
     isOperationRunning = false,
-    manualMode = true;
+    manualMode;
 
 var rl = readline.createInterface({
     input: process.stdin,
@@ -80,12 +80,15 @@ async function getArduinoConnection() {
 }
 
 async function connectArduino() {
+    manualMode=false;
     var connection = await getArduinoConnection();
     if (connection) {
-        main(connection);
+        arduinoMain(connection);
     } else {
         console.log('retrying connection...');
-        setTimeout(()=>{connectArduino();}, 2000);
+        setTimeout(() => {
+            connectArduino();
+        }, 2000);
     }
 }
 
@@ -138,14 +141,14 @@ async function sendToMachine(command, connection) {
         } else {
             onData = (data) => {
                 var buffer = Buffer.from(data);
-                for(let i = 0; i < buffer.length; i++) {
+                for (let i = 0; i < buffer.length; i++) {
                     let chr = buffer[i];
-                    if(chr <= 32) continue;
-                    if(chr == 'r'.charCodeAt(0)) {
+                    if (chr <= 32) continue;
+                    if (chr == 'r'.charCodeAt(0)) {
                         resolve();
                         break;
                     }
-                    if(chr == 'e'.charCodeAt(0)) {
+                    if (chr == 'e'.charCodeAt(0)) {
                         reject('opearationFailed');
                         break;
                     }
@@ -174,11 +177,11 @@ async function handleOperation(operation, connection) {
                 printMessage(body.error);
             }
         });
-        sendToMachine('m ' + Math.floor(operation.address/1000) +' ' + operation.address%100+ ' ' + Math.floor(operation.destination/1000)+ ' ' +operation.destination%100, connection)
+        sendToMachine('m ' + Math.floor(operation.address / 1000) + ' ' + operation.address % 100 + ' ' + Math.floor(operation.destination / 1000) + ' ' + operation.destination % 100, connection)
             .then(() => {
                 printMessage('operation complete');
                 //console.log(operation);
-                
+
                 request(mainServerAddress + '/warehouse/operation_event', {
                     secret: connectionSecret,
                     operation: {
@@ -237,58 +240,78 @@ function startOperation(connection) {
     });
 }
 
-function main(connection) {
+function arduinoMain(connection) {
     console.log("connection established on port: " + connection.path);
 
-    new Promise((resolve, reject)=>{
-        onData = (data) => {
-            printMessage('recieved data:\n' + data);
+    var check2 = false;
+    new Promise((resolve, reject) => {
             onData = (data) => {
-                var buffer = Buffer.from(data);
-                for(let i = 0; i < buffer.length; i++) {
-                    let chr = buffer[i];
-                    if(chr <= 32) continue;
-                    if(chr == 'r'.charCodeAt(0)) {
-                        resolve();
-                        break;
+                printMessage('recieved data:\n' + data);
+                onData = (data) => {
+                    var buffer = Buffer.from(data);
+                    for (let i = 0; i < buffer.length; i++) {
+                        let chr = buffer[i];
+                        if (chr <= 32) continue;
+                        if (chr == 'r'.charCodeAt(0)) {
+                            resolve();
+                            break;
+                        }
+                        if (chr == 'e'.charCodeAt(0)) {
+                            reject('opearationFailed');
+                            break;
+                        }
                     }
-                    if(chr == 'e'.charCodeAt(0)) {
-                        reject('opearationFailed');
-                        break;
-                    }
-                }
+                };
             };
-        };
-        connection.write('r');
-    })
-    .then(()=>{
-        setInterval(async () => {
-            try{
-                operationsList = await loadOperations();
-            }catch(err){
-                printMessage('server unreachable ...');
-            }
-        }, 1000);
-        
-        startOperation(connection);
-    });
+            connection.write('r');
+        })
+        .then(() => {
+            setInterval(async () => {
+                try {
+                    operationsList = await loadOperations();
+                    if (check1) {
+                        printMessage('enter code: ');
+                        check1 = false;
+                    }
+                } catch (err) {
+                    printMessage('server unreachable ...');
+                    check = true;
+                }
+            }, 1000);
+
+            startOperation(connection);
+        });
 }
-var check=false;
 async function manual() {
+    manualMode=true;
+    var check1 = false;
     setInterval(async () => {
-        try{
+        try {
             operationsList = await loadOperations();
-            if(check){
+            if (check1) {
                 printMessage('enter code: ');
-                check=false;
+                check1 = false;
             }
-        }catch(err){
+        } catch (err) {
             printMessage('server unreachable ...');
-            check=true;
+            check1 = true;
         }
     }, 1000);
     startOperation();
 }
 
-if(manualMode) manual();
-else connectArduino();
+function startup() {
+    rl.question('server address: [http://server.autostorage.online] ', (address) => {
+        if(address != '') mainServerAddress = address;
+        rl.question('mode (manual/auto): [auto] ', (input) => {
+            if (input == 'manual') manual();
+            else if (input == 'auto' || input == '') connectArduino();
+            else {
+                printMessage('error: invalid input');
+                startup();
+            }
+        });
+    });
+}
+
+startup();
