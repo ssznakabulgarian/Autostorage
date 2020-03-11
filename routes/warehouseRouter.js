@@ -98,7 +98,7 @@ router.post('/import', async function (req, res) {
     if (result.error.length == 0) {
         req.body.time = Date.now();
         req.body.code = Math.floor(Math.random() * 899999 + 100000);
-        await database.none("INSERT INTO operations(destination, type, status, time_added, code, item_name) VALUES($(item.address), 'import', 'waiting', $(time), $(code), $(item.name))", req.body);
+        await database.none("INSERT INTO operations(destination, type, status, time_added, code, item_name, owner_id) VALUES($(item.address), 'import', 'waiting', $(time), $(code), $(item.name), $(id))", req.body);
         await database.none("UPDATE storageunits SET name=$(item.name), description=$(item.description), status='processing', operation_code=$(code) WHERE address=$(item.address)", req.body);
         //  await database.none("UPDATE storageunits SET status='procesing' WHERE address=$(slot)", req.body);
         result.data = {
@@ -137,7 +137,7 @@ router.post('/export', async function (req, res) {
         req.body.time = Date.now();
         //req.body.slot = slotAddresses[Math.floor(Math.random() * slotAddresses.length)];
         req.body.code = Math.floor(Math.random() * 899999 + 100000);
-        await database.none("INSERT INTO operations(address, type, status, time_added, code, item_name) VALUES($(itemAddress), 'export', 'waiting', $(time), $(code), (SELECT name FROM storageunits WHERE address=$(itemAddress)))", req.body);
+        await database.none("INSERT INTO operations(address, type, status, time_added, code, item_name, owner_id) VALUES($(itemAddress), 'export', 'waiting', $(time), $(code), (SELECT name FROM storageunits WHERE address=$(itemAddress)), $(id))", req.body);
         await database.none("UPDATE storageunits SET status='processing', operation_code=$(code) WHERE address=$(itemAddress)", req.body);
         // await database.none("UPDATE storageunits SET status='processing' WHERE address=$(slot)", req.body);
         result.data = {
@@ -197,7 +197,7 @@ router.post('/list_operations', async function (req, res) {
         var row = await database.oneOrNone("SELECT id FROM users WHERE token = $(token)", req.body);
         if (row) {
             req.body.id = row.id;
-            result.data = await database.manyOrNone("SELECT type, item_name, status, time_added FROM operations WHERE ( address IN (SELECT address FROM storageunits WHERE owner_id=$(id)) OR destination IN (SELECT address FROM storageunits WHERE owner_id=$(id)) ) AND time_added>(SELECT time_purchased FROM storageunits WHERE address=operations.address OR address=operations.destination) ORDER BY time_added ASC", req.body);
+            result.data = await database.manyOrNone("SELECT type, item_name, status, time_added FROM operations WHERE owner_id=$(id) ORDER BY time_added ASC", req.body);
         } else {
             result.error.push("wrongOrExpiredToken");
         }

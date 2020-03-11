@@ -6,12 +6,15 @@
 -- Dumped by pg_dump version 9.6.16
 
 SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
+SET row_security = off;
 
 --
 -- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
@@ -94,7 +97,8 @@ CREATE TABLE public.liabilities (
     value money NOT NULL,
     state character varying(64) NOT NULL,
     id integer DEFAULT nextval('public.liabilities_id'::regclass) NOT NULL,
-    date bigint
+    date bigint,
+    item_name character varying(128)
 );
 
 
@@ -186,25 +190,49 @@ ALTER TABLE public.users OWNER TO autostorage;
 -- Data for Name: liabilities; Type: TABLE DATA; Schema: public; Owner: autostorage
 --
 
-COPY public.liabilities (user_id, type, value, state, id, date) FROM stdin;
-4	storageunit	$72.00	not_paid	18	1583515173067
-4	import	$4.00	not_paid	19	1583515275814
-4	storageunit	$0.00	not_paid	20	1583515344841
-4	storageunit	$1.00	not_paid	21	1583515443353
-4	export	$4.15	not_paid	22	1583515509415
-4	import	$4.98	not_paid	23	1583516647608
-4	export	$4.98	not_paid	24	1583516667255
-4	import	$4.98	not_paid	25	1583519735351
-4	export	$4.98	not_paid	26	1583521118431
-4	export	$4.98	not_paid	28	1583597365191
-4	export	$4.98	not_paid	29	1583597492946
-13	import	$4.98	not_paid	30	1583601018076
-13	storageunit	$1.00	not_paid	31	1583601046869
-13	export	$4.98	not_paid	32	1583837013171
-13	storageunit	$197.00	not_paid	33	1583837033098
-13	storageunit	$0.00	not_paid	34	1583837055764
-13	import	$4.98	not_paid	35	1583837391097
-13	export	$4.98	not_paid	36	1583837470064
+COPY public.liabilities (user_id, type, value, state, id, date, item_name) FROM stdin;
+4	storageunit	$72.00	not_paid	18	1583515173067	\N
+4	import	$4.00	not_paid	19	1583515275814	\N
+4	storageunit	$0.00	not_paid	20	1583515344841	\N
+4	storageunit	$1.00	not_paid	21	1583515443353	\N
+4	export	$4.15	not_paid	22	1583515509415	\N
+4	import	$4.98	not_paid	23	1583516647608	\N
+4	export	$4.98	not_paid	24	1583516667255	\N
+4	import	$4.98	not_paid	25	1583519735351	\N
+4	export	$4.98	not_paid	26	1583521118431	\N
+4	export	$4.98	not_paid	28	1583597365191	\N
+4	export	$4.98	not_paid	29	1583597492946	\N
+13	import	$4.98	not_paid	30	1583601018076	\N
+13	storageunit	$1.00	not_paid	31	1583601046869	\N
+13	export	$4.98	not_paid	32	1583837013171	\N
+13	storageunit	$197.00	not_paid	33	1583837033098	\N
+13	storageunit	$0.00	not_paid	34	1583837055764	\N
+13	import	$4.98	not_paid	35	1583837391097	\N
+13	export	$4.98	not_paid	36	1583837470064	\N
+4	storageunit	$389.00	not_paid	37	1583872980627	\N
+4	storageunit	$0.00	not_paid	38	1583873019353	\N
+4	storageunit	$748.00	not_paid	39	1583873054430	\N
+4	storageunit	$0.00	not_paid	40	1583873082089	\N
+4	import	$4.98	not_paid	41	1583873146244	\N
+4	export	$4.98	not_paid	42	1583873207259	\N
+4	import	$4.98	not_paid	43	1583874262363	\N
+4	export	$4.98	not_paid	44	1583874350490	\N
+4	import	$4.98	not_paid	45	1583874446866	\N
+4	export	$4.98	not_paid	46	1583874480345	\N
+4	storageunit	$390.00	not_paid	47	1583874754838	\N
+4	storageunit	$390.00	not_paid	48	1583874756469	\N
+4	storageunit	$1,620.00	not_paid	49	1583874758256	\N
+4	storageunit	$1.00	not_paid	50	1583874760128	\N
+4	storageunit	$1.00	not_paid	51	1583874762050	\N
+4	storageunit	$1,620.00	not_paid	52	1583874767002	\N
+4	storageunit	$466.00	not_paid	53	1583874768995	\N
+4	import	$4.98	not_paid	54	1583875153147	\N
+4	export	$4.98	not_paid	55	1583875180139	\N
+4	export	$4.98	not_paid	56	1583875245620	\N
+4	import	$4.98	not_paid	57	1583875710392	my stock #32472345
+4	export	$4.98	not_paid	58	1583875798026	my stock #32472345
+4	import	$4.98	not_paid	59	1583875889031	my special stock #32546543
+4	import	$4.98	not_paid	60	1583919830371	my stock #34565
 \.
 
 
@@ -212,14 +240,14 @@ COPY public.liabilities (user_id, type, value, state, id, date) FROM stdin;
 -- Name: liabilities_id; Type: SEQUENCE SET; Schema: public; Owner: autostorage
 --
 
-SELECT pg_catalog.setval('public.liabilities_id', 36, true);
+SELECT pg_catalog.setval('public.liabilities_id', 60, true);
 
 
 --
 -- Name: operation_id; Type: SEQUENCE SET; Schema: public; Owner: autostorage
 --
 
-SELECT pg_catalog.setval('public.operation_id', 50, true);
+SELECT pg_catalog.setval('public.operation_id', 62, true);
 
 
 --
@@ -227,40 +255,16 @@ SELECT pg_catalog.setval('public.operation_id', 50, true);
 --
 
 COPY public.operations (id, type, status, time_added, code, destination, address, item_name) FROM stdin;
-42	import	complete	1583516640284	110419	12	0	0
-18	export	complete	1583327163909	440453	0	1030	0
-19	import	waiting	1583406754524	992031	1030	0	0
-20	import	complete	1583406865207	388101	1030	0	0
-21	export	complete	1583406915656	367116	0	1030	0
-43	export	complete	1583516658982	952090	0	12	0
-22	import	complete	1583407097580	620382	4	0	0
-23	export	complete	1583407163058	913593	0	4	0
-24	import	complete	1583411557165	126836	1040	0	0
-44	import	complete	1583519724701	849458	1050	0	0
-25	import	complete	1583412473942	803730	6	0	0
-26	import	complete	1583426922227	552666	2	0	0
-29	import	complete	1583428168552	432946	12	0	0
-45	export	complete	1583521101151	566474	0	1050	0
-30	import	complete	1583428175535	996884	1050	0	0
-31	export	complete	1583428215602	385706	0	1050	0
-32	export	complete	1583485542542	596185	0	12	0
-33	import	complete	1583485590386	948182	1020	0	0
-27	export	complete	1583427104059	688056	0	2	0
-34	import	complete	1583489754165	319161	2002	0	0
-28	export	complete	1583427755838	531020	0	1040	0
-36	import	complete	1583491945030	160654	2002	0	0
-35	import	complete	1583490322491	249459	2002	0	0
-37	import	complete	1583492165325	341105	2002	0	0
-38	export	error	1583492347963	759675	0	2002	0
-39	export	complete	1583492658329	593658	0	2002	0
-1	export	complete	1583492165328	123456	1111	0	0
-40	import	complete	1583505093302	523422	12	0	0
-46	export	complete	1583597481363	959609	0	1111	0
-41	export	complete	1583515499989	580859	0	12	0
-47	import	complete	1583600871238	737357	9	0	0
-48	export	complete	1583836990849	346353	0	9	0
-49	import	complete	1583837345391	107455	9	0	0
-50	export	complete	1583837458655	536237	0	9	0
+54	export	complete	1583874333068	804021	0	12	asdasd
+55	import	complete	1583874436540	762994	12	0	new asdasd
+56	export	complete	1583874467405	960953	0	12	new asdasd
+57	import	complete	1583875142348	922293	10	0	my stock #235722
+58	export	complete	1583875169936	438578	0	10	my stock #235722
+59	import	complete	1583875701145	933657	10	0	my stock #32472345
+60	export	complete	1583875784562	434560	0	10	my stock #32472345
+61	import	complete	1583875879167	565638	10	0	my special stock #32546543
+62	import	complete	1583919569437	324695	1010	0	my stock #5645766
+53	import	complete	1583874247335	314458	12	0	asdasd
 \.
 
 
@@ -269,26 +273,26 @@ COPY public.operations (id, type, status, time_added, code, destination, address
 --
 
 COPY public.storageunits (address, owner_id, name, time_purchased, description, status, operation_code) FROM stdin;
-10	-1	slot	1583837043278	this is a new empty slot	vacant	\N
+2002	-1	storage unit	0	this is a new empty storage unit	vacant	\N
+1	-1	storage unit	0	this is a new empty storage unit	vacant	\N
+10	4	my special stock #32546543	1583874812245	20 fire extinguishers class A	occupied	\N
 9	13	box	1583837325113	time's relative	vacant	\N
 2222	0	slot 2	\N	this is a slot	vacant	\N
-2002	4	bgjghkj	1581924028985	vnvmnbm	vacant	\N
+1010	4	my stock #34565	1583874812245	\N	occupied	\N
 3333	0	slot 3	\N	this is a slot	procesing	\N
 3	11	slot	1583407079545	this is a new empty slot	vacant	\N
-1030	4	asdasdasd	1581924028985	dsadsadsa	vacant	\N
 4	11	Gahahs	1583407079545	Hshsggahd	vacant	\N
 5	11	slot	1583407356430	this is a new empty slot	vacant	\N
-12	4	asdasd	1583405043279	asdasdasd	vacant	\N
-1050	4	123654789	1583405043279	khgfredujk	vacant	\N
-1010	4	imported item #1	1583405043279	description	vacant	\N
-11	-1	slot	1583405043279	this is a new empty slot	vacant	\N
-1111	4	stoka	1583313862582	test description	vacant	\N
+11	-1	slot	1583405043279	this is a new empty storage unit	vacant	\N
+12	-1	storage unit	0	this is a new empty storage unit	vacant	\N
+1030	-1	storage unit	0	this is a new empty storage unit	vacant	\N
+1040	-1	storage unit	0	this is a new empty storage unit	vacant	\N
+1111	-1	storage unit	0	this is a new empty storage unit	vacant	\N
 7	12	slot	1583426969388	this is a new empty slot	vacant	\N
 8	12	slot	1583426971751	this is a new empty slot	vacant	\N
 2	12	test	1583426883923	test	vacant	\N
 6	7	Agshhssh	1583412436077	Jdhdhdhs	occupied	\N
-1	-1	slot	1583405636706	this is a new empty slot	vacant	\N
-1040	4	asdasd	1582972471310	asdasdasd	vacant	\N
+1050	4	storage unit	1583874812245	this is a new empty storage unit	vacant	\N
 \.
 
 
