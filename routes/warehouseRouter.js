@@ -62,6 +62,11 @@ function isOperationStatusValid(status) {
     return !isEmpty(status) && check;
 }
 
+async function isOperationCodeValid(code){
+    var tmp = await database.manyOrNone("SELECT code FROM operations WHERE code=$(code)", {code: code});
+    return !isEmpty(code) && !isNaN(code) && tmp.length==0;
+}
+
 function isRequestValid(req) {
     return !isEmpty(req);
 }
@@ -83,6 +88,7 @@ router.post('/import', async function (req, res) {
     if (!isItemNameValid(req.body.item.name)) result.error.push("invalidItemName");
     if (!isItemDescriptionValid(req.body.item.description)) result.error.push('invalidItemDescription');
     if (!isItemAddressValid(req.body.item.address)) result.error.push("invalidItemAddress");
+    if (!isOperationCodeValid(req.body.code)) result.error.push('invalidOperationCode');
 
     if (result.error.length == 0) {
         var row = await database.oneOrNone("SELECT id FROM users WHERE token = $(token)", req.body);
@@ -97,7 +103,7 @@ router.post('/import', async function (req, res) {
 
     if (result.error.length == 0) {
         req.body.time = Date.now();
-        req.body.code = Math.floor(Math.random() * 899999 + 100000);
+        //req.body.code = Math.floor(Math.random() * 899999 + 100000);
         await database.none("INSERT INTO operations(destination, type, status, time_added, code, item_name, owner_id) VALUES($(item.address), 'import', 'waiting', $(time), $(code), $(item.name), $(id))", req.body);
         await database.none("UPDATE storageunits SET name=$(item.name), description=$(item.description), status='processing', operation_code=$(code) WHERE address=$(item.address)", req.body);
         //  await database.none("UPDATE storageunits SET status='procesing' WHERE address=$(slot)", req.body);
@@ -117,7 +123,7 @@ router.post('/export', async function (req, res) {
     };
 
     if (!isRequestValid(req)) result.error.push("invalidRequest");
-    if (!isItemAddressValid(req.body.itemAddress)) result.error.push('invalidItemAddress');
+    if (!isItemAddressValid(req.body.item.address)) result.error.push('invalidItemAddress');
     if (!isTokenValid(req.body.token)) result.error.push('invalidToken');
     // if (!isSlotAddressValid(req.body.slot)) result.error.push('invalidSlotAddress');
     // if (!isSlotAvailable(req.body.slot)) result.error.push('unavailableSlot');
@@ -126,7 +132,7 @@ router.post('/export', async function (req, res) {
         var row = await database.oneOrNone("SELECT id FROM users WHERE token = $(token)", req.body);
         if (row) {
             req.body.id = row.id;
-            row = await database.oneOrNone("SELECT address FROM storageunits WHERE status='occupied' AND address=$(itemAddress) AND owner_id=$(id)", req.body);
+            row = await database.oneOrNone("SELECT address FROM storageunits WHERE status='occupied' AND address=$(item.address) AND owner_id=$(id)", req.body);
             if (!row) result.error.push("wrongAddress");
         } else {
             result.error.push("wrongOrExpiredToken");
@@ -137,8 +143,8 @@ router.post('/export', async function (req, res) {
         req.body.time = Date.now();
         //req.body.slot = slotAddresses[Math.floor(Math.random() * slotAddresses.length)];
         req.body.code = Math.floor(Math.random() * 899999 + 100000);
-        await database.none("INSERT INTO operations(address, type, status, time_added, code, item_name, owner_id) VALUES($(itemAddress), 'export', 'waiting', $(time), $(code), (SELECT name FROM storageunits WHERE address=$(itemAddress)), $(id))", req.body);
-        await database.none("UPDATE storageunits SET status='processing', operation_code=$(code) WHERE address=$(itemAddress)", req.body);
+        await database.none("INSERT INTO operations(address, type, status, time_added, code, item_name, owner_id) VALUES($(item.address), 'export', 'waiting', $(time), $(code), (SELECT name FROM storageunits WHERE address=$(item.address)), $(id))", req.body);
+        await database.none("UPDATE storageunits SET status='processing', operation_code=$(code) WHERE address=$(item.address)", req.body);
         // await database.none("UPDATE storageunits SET status='processing' WHERE address=$(slot)", req.body);
         result.data = {
             slot: req.body.slot,
@@ -295,7 +301,7 @@ router.post('/release', async function (req, res) {
 
                 req.body.time = now;
                 await database.none("UPDATE storageunits SET owner_id=-1, name='storage unit', description='this is a description', time_purchased=0, operation_code=NULL WHERE address=$(address)", req.body);
-                await database.none("INSERT INTO liabilities(user_id, type, value, state, date) VALUES($(id), 'storageunit', $(price), 'not_paid', $(time))", req.body);
+                await database.none("INSERT INTO liabilities(user_id, type, value, state, date) VALUES($(id), 'released storage unit', $(price), 'not_paid', $(time))", req.body);
                 result.data = {
                     address: req.body.address,
                     price: req.body.price

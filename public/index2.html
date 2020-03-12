@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8">
     <title>QR Code Scanner</title>
-    <link rel="preload" as="script" href="decoder.js">
+    <!--<link rel="preload" as="script" href="assets/js/decoder.js">-->
   </head>
   <body>
 	<video id="vid" autoplay></video>
-	<canvas id="can" width="600" height="400" style="visibility:hidden"></canvas>
+	<canvas id="can" width="600" height="400" style="display: none;"></canvas>
 
     <script type="text/javascript">
 		var ctx = can.getContext('2d');
@@ -73,7 +73,7 @@
 			}
 		  });
 		  
-			var decoder = new Worker('/decoder.js');
+			var decoder = new Worker('assets/js/decoder.js');
 			decoder.onmessage = function onDecoderMessage(event) {
 				if (event.data.length > 0) {
 				  var qrid = event.data[0][2];
