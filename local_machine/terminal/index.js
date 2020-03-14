@@ -7,7 +7,7 @@ var connectionResponseString = "c",
     onData = null,
     awaitingCommand = false,
     processCommand = null,
-    mainServerAddress = 'http://server.autostorage.online',
+    mainServerAddress = 'https://server.autostorage.online',
     connectionSecret = '_9e8a7s4y1s2t3o6r5e_',
     operationsList = [],
     isOperationRunning = false,
@@ -293,6 +293,8 @@ async function manual() {
                 check1 = false;
             }
         } catch (err) {
+            console.log(err);
+            
             printMessage('server unreachable ...');
             check1 = true;
         }
@@ -301,7 +303,7 @@ async function manual() {
 }
 
 function startup() {
-    rl.question('server address: [http://server.autostorage.online] ', (address) => {
+    rl.question('server address: [https://server.autostorage.online] ', (address) => {
         if(address != '') mainServerAddress = address;
         rl.question('mode (manual/auto): [auto] ', (input) => {
             if (input == 'manual') manual();

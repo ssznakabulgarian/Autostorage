@@ -481,19 +481,37 @@ function openMaintenanceDialogue(item) {
     var tmp = maintenanceCardTemplate.cloneNode(true);
     dashboardMainContainer.appendChild(tmp);
     isMaintenanceDialogueOpen = true;
-    document.getElementById('release-submit-button').addEventListener('click', (e) => {
-        e.preventDefault();
-        request('/warehouse/release', null, {
-            token: localStorage.getItem('token'),
-            address: selectedCardAddress
-        }, (success, result, error, e) => {
-            if (!success) handleErrors(error);
-            else {
-                console.log(result);
-                closeMaintenanceDialogue();
-            }
+    if (item.getAttribute('status') == 'processing') {
+        document.getElementById('release-storage-unit-button').setAttribute('disabled', '');
+        document.getElementById('cancel-operation-button').addEventListener('click', (e) => {
+            e.preventDefault();
+            request('/warehouse/cancel_operation', null, {
+                token: localStorage.getItem('token'),
+                address: selectedCardAddress
+            }, (success, result, error, e) => {
+                if (!success) handleErrors(error);
+                else {
+                    console.log(result);
+                    closeMaintenanceDialogue();
+                }
+            });
         });
-    });
+    } else {
+        document.getElementById('cancel-operation-button').setAttribute('disabled', '');
+        document.getElementById('release-storage-unit-button').addEventListener('click', (e) => {
+            e.preventDefault();
+            request('/warehouse/release', null, {
+                token: localStorage.getItem('token'),
+                address: selectedCardAddress
+            }, (success, result, error, e) => {
+                if (!success) handleErrors(error);
+                else {
+                    console.log(result);
+                    closeMaintenanceDialogue();
+                }
+            });
+        });
+    }
 }
 
 function genStorageUnitCards() {
@@ -589,7 +607,8 @@ function genLiabilitiesTable() {
             while (liabilitiesTable.firstElementChild) {
                 liabilitiesTable.removeChild(liabilitiesTable.firstElementChild)
             }
-            function addEntry(element){
+
+            function addEntry(element) {
                 tmp = liabilitiesTableRowTemplate.cloneNode(true);
                 tmp.children[0].innerHTML = element.type;
                 tmp.children[1].innerHTML = element.item_name;
@@ -616,7 +635,9 @@ function genLiabilitiesTable() {
                     });
                 }
             });
-            result.forEach((element)=>{addEntry(element);});
+            result.forEach((element) => {
+                addEntry(element);
+            });
         }
     });
 }

@@ -127,10 +127,11 @@ CREATE TABLE public.operations (
     type character varying(64) NOT NULL,
     status character varying(64) DEFAULT 'waiting'::character varying NOT NULL,
     time_added bigint NOT NULL,
-    code integer NOT NULL,
+    code numeric NOT NULL,
     destination integer DEFAULT 0,
     address integer DEFAULT 0,
-    item_name character varying(128) DEFAULT 0 NOT NULL
+    item_name character varying(128) DEFAULT 0 NOT NULL,
+    owner_id integer DEFAULT 0 NOT NULL
 );
 
 
@@ -147,7 +148,7 @@ CREATE TABLE public.storageunits (
     time_purchased bigint,
     description character varying(256),
     status character varying(32) DEFAULT 'vacant'::character varying NOT NULL,
-    operation_code integer
+    operation_code numeric
 );
 
 
@@ -191,48 +192,17 @@ ALTER TABLE public.users OWNER TO autostorage;
 --
 
 COPY public.liabilities (user_id, type, value, state, id, date, item_name) FROM stdin;
-4	storageunit	$72.00	not_paid	18	1583515173067	\N
-4	import	$4.00	not_paid	19	1583515275814	\N
-4	storageunit	$0.00	not_paid	20	1583515344841	\N
-4	storageunit	$1.00	not_paid	21	1583515443353	\N
-4	export	$4.15	not_paid	22	1583515509415	\N
-4	import	$4.98	not_paid	23	1583516647608	\N
-4	export	$4.98	not_paid	24	1583516667255	\N
-4	import	$4.98	not_paid	25	1583519735351	\N
-4	export	$4.98	not_paid	26	1583521118431	\N
-4	export	$4.98	not_paid	28	1583597365191	\N
-4	export	$4.98	not_paid	29	1583597492946	\N
-13	import	$4.98	not_paid	30	1583601018076	\N
-13	storageunit	$1.00	not_paid	31	1583601046869	\N
-13	export	$4.98	not_paid	32	1583837013171	\N
-13	storageunit	$197.00	not_paid	33	1583837033098	\N
-13	storageunit	$0.00	not_paid	34	1583837055764	\N
-13	import	$4.98	not_paid	35	1583837391097	\N
-13	export	$4.98	not_paid	36	1583837470064	\N
-4	storageunit	$389.00	not_paid	37	1583872980627	\N
-4	storageunit	$0.00	not_paid	38	1583873019353	\N
-4	storageunit	$748.00	not_paid	39	1583873054430	\N
-4	storageunit	$0.00	not_paid	40	1583873082089	\N
-4	import	$4.98	not_paid	41	1583873146244	\N
-4	export	$4.98	not_paid	42	1583873207259	\N
-4	import	$4.98	not_paid	43	1583874262363	\N
-4	export	$4.98	not_paid	44	1583874350490	\N
-4	import	$4.98	not_paid	45	1583874446866	\N
-4	export	$4.98	not_paid	46	1583874480345	\N
-4	storageunit	$390.00	not_paid	47	1583874754838	\N
-4	storageunit	$390.00	not_paid	48	1583874756469	\N
-4	storageunit	$1,620.00	not_paid	49	1583874758256	\N
-4	storageunit	$1.00	not_paid	50	1583874760128	\N
-4	storageunit	$1.00	not_paid	51	1583874762050	\N
-4	storageunit	$1,620.00	not_paid	52	1583874767002	\N
-4	storageunit	$466.00	not_paid	53	1583874768995	\N
-4	import	$4.98	not_paid	54	1583875153147	\N
-4	export	$4.98	not_paid	55	1583875180139	\N
-4	export	$4.98	not_paid	56	1583875245620	\N
-4	import	$4.98	not_paid	57	1583875710392	my stock #32472345
-4	export	$4.98	not_paid	58	1583875798026	my stock #32472345
-4	import	$4.98	not_paid	59	1583875889031	my special stock #32546543
-4	import	$4.98	not_paid	60	1583919830371	my stock #34565
+4	storageunit	$1,620.00	not_paid	1	1583874758256	hhff
+4	import	$4.98	not_paid	2	1583875710392	my stock #32472345
+4	export	$4.98	not_paid	3	1583875798026	my stock #32472345
+4	import	$4.98	not_paid	4	1583875889031	my special stock #32546543
+4	import	$4.98	not_paid	5	1583919830371	my stock #34565
+4	export	$4.98	not_paid	8	1584033135934	my stock #34565
+4	import	$4.98	not_paid	9	1584035286045	asasdasd
+4	export	$4.98	not_paid	10	1584035299338	asasdasd
+4	import	$4.98	not_paid	11	1584037852375	namename
+4	export	$4.98	not_paid	12	1584037871965	namename
+4	released storage unit	$137.00	not_paid	13	1584039611975	\N
 \.
 
 
@@ -240,31 +210,36 @@ COPY public.liabilities (user_id, type, value, state, id, date, item_name) FROM 
 -- Name: liabilities_id; Type: SEQUENCE SET; Schema: public; Owner: autostorage
 --
 
-SELECT pg_catalog.setval('public.liabilities_id', 60, true);
+SELECT pg_catalog.setval('public.liabilities_id', 13, true);
 
 
 --
 -- Name: operation_id; Type: SEQUENCE SET; Schema: public; Owner: autostorage
 --
 
-SELECT pg_catalog.setval('public.operation_id', 62, true);
+SELECT pg_catalog.setval('public.operation_id', 67, true);
 
 
 --
 -- Data for Name: operations; Type: TABLE DATA; Schema: public; Owner: autostorage
 --
 
-COPY public.operations (id, type, status, time_added, code, destination, address, item_name) FROM stdin;
-54	export	complete	1583874333068	804021	0	12	asdasd
-55	import	complete	1583874436540	762994	12	0	new asdasd
-56	export	complete	1583874467405	960953	0	12	new asdasd
-57	import	complete	1583875142348	922293	10	0	my stock #235722
-58	export	complete	1583875169936	438578	0	10	my stock #235722
-59	import	complete	1583875701145	933657	10	0	my stock #32472345
-60	export	complete	1583875784562	434560	0	10	my stock #32472345
-61	import	complete	1583875879167	565638	10	0	my special stock #32546543
-62	import	complete	1583919569437	324695	1010	0	my stock #5645766
-53	import	complete	1583874247335	314458	12	0	asdasd
+COPY public.operations (id, type, status, time_added, code, destination, address, item_name, owner_id) FROM stdin;
+54	export	complete	1583874333068	804021	0	12	asdasd	0
+55	import	complete	1583874436540	762994	12	0	new asdasd	0
+56	export	complete	1583874467405	960953	0	12	new asdasd	0
+57	import	complete	1583875142348	922293	10	0	my stock #235722	0
+58	export	complete	1583875169936	438578	0	10	my stock #235722	0
+59	import	complete	1583875701145	933657	10	0	my stock #32472345	0
+60	export	complete	1583875784562	434560	0	10	my stock #32472345	0
+61	import	complete	1583875879167	565638	10	0	my special stock #32546543	0
+62	import	complete	1583919569437	324695	1010	0	my stock #5645766	0
+53	import	complete	1583874247335	314458	12	0	asdasd	0
+63	export	complete	1584033099672	200826	0	1010	my stock #34565	4
+64	import	complete	1584035275993	1243	1050	0	asasdasd	4
+65	export	complete	1584035289635	595381	0	1050	asasdasd	4
+66	import	complete	1584037833191	8273637838362621	1010	0	namename	4
+67	export	complete	1584037863956	288818	0	1010	namename	4
 \.
 
 
@@ -273,12 +248,10 @@ COPY public.operations (id, type, status, time_added, code, destination, address
 --
 
 COPY public.storageunits (address, owner_id, name, time_purchased, description, status, operation_code) FROM stdin;
-2002	-1	storage unit	0	this is a new empty storage unit	vacant	\N
 1	-1	storage unit	0	this is a new empty storage unit	vacant	\N
 10	4	my special stock #32546543	1583874812245	20 fire extinguishers class A	occupied	\N
 9	13	box	1583837325113	time's relative	vacant	\N
 2222	0	slot 2	\N	this is a slot	vacant	\N
-1010	4	my stock #34565	1583874812245	\N	occupied	\N
 3333	0	slot 3	\N	this is a slot	procesing	\N
 3	11	slot	1583407079545	this is a new empty slot	vacant	\N
 4	11	Gahahs	1583407079545	Hshsggahd	vacant	\N
@@ -292,7 +265,9 @@ COPY public.storageunits (address, owner_id, name, time_purchased, description, 
 8	12	slot	1583426971751	this is a new empty slot	vacant	\N
 2	12	test	1583426883923	test	vacant	\N
 6	7	Agshhssh	1583412436077	Jdhdhdhs	occupied	\N
-1050	4	storage unit	1583874812245	this is a new empty storage unit	vacant	\N
+1010	4	storage unit	1583874812245	this is an empty storage unit	vacant	\N
+2002	4	storage unit	1584037900094	this is a new empty storage unit	vacant	\N
+1050	-1	storage unit	0	this is a description	vacant	\N
 \.
 
 
