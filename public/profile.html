@@ -155,18 +155,27 @@
                             </div>
                             <div class="card-body">
                                 <form>
+                                    <div class="form-row mb-2">
+                                        <div class="col">
+                                            <div class="form-group"><label><strong>Profile picture:&nbsp;</strong></label><br><input type="file" id="profile-update-file-upload" class="custom-file-input" accept="image/*" name="profile-picture" style="display: none;">
+                                                <label
+                                                    id="profile-update-file-upload-label" for="profile-picture" style="cursor: pointer;margin-bottom: 0px;padding: 12px;border: 2px solid #4e73df;color: #4e73df;font-weight: bold;"><i class="fas fa-upload"></i>&nbsp;Choose an image...</label>
+                                            </div>
+                                        </div>
+                                        <div class="col"><img id="profile-update-thumbnail" src="assets/img/user-icon.png" style="width: 15rem;height: 15rem;object-fit: cover;"></div>
+                                    </div>
                                     <div class="form-row">
                                         <div class="col">
-                                            <div class="form-group"><label for="first_name"><strong>First Name</strong></label><input class="form-control" type="text" placeholder="John" name="first_name"></div>
+                                            <div class="form-group"><label for="first_name"><strong>First Name</strong></label><input class="form-control" type="text" id="profile-update-first-name-input" placeholder="John" name="first_name"></div>
                                         </div>
                                         <div class="col">
-                                            <div class="form-group"><label for="last_name"><strong>Last Name</strong></label><input class="form-control" type="text" placeholder="Doe" name="last_name"></div>
+                                            <div class="form-group"><label for="last_name"><strong>Last Name</strong></label><input class="form-control" type="text" id="profile-update-last-name-input" placeholder="Doe" name="last_name"></div>
                                         </div>
                                     </div>
-                                    <div class="form-group"><label for="username"><strong>Username</strong></label><input class="form-control" type="text" placeholder="user.name" name="username"></div>
-                                    <div class="form-group"><label for="email"><strong>Email Address</strong></label><input class="form-control" type="email" placeholder="user@example.com" name="email"></div>
-                                    <div class="form-group"><label for="email"><strong>Address</strong><br></label><input class="form-control" type="email" name="email" placeholder="221B Baker street, ..."></div>
-                                    <div class="form-group"><button class="btn btn-primary btn-sm">Save Changes</button></div>
+                                    <div class="form-group"><label for="username"><strong>Username</strong></label><input class="form-control" type="text" id="profile-update-username-input" placeholder="user.name" name="username"></div>
+                                    <div class="form-group"><label for="email"><strong>Email Address</strong></label><input class="form-control" type="email" id="profile-update-email-input" placeholder="user@example.com" name="email"></div>
+                                    <div class="form-group"><label for="email"><strong>Address</strong><br></label><input class="form-control" type="email" id="profile-update-address-input" name="email" placeholder="221B Baker street, ..."></div>
+                                    <div class="form-group"><button class="btn btn-primary btn-sm" id="profile-update-submit-button">Save Changes</button></div>
                                 </form>
                             </div>
                         </div>

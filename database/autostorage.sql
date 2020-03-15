@@ -179,9 +179,9 @@ CREATE TABLE public.users (
     username character varying(128) NOT NULL,
     password character varying(256) NOT NULL,
     email character varying(128) NOT NULL,
-    age integer,
     failed_logins integer DEFAULT 0 NOT NULL,
-    token character varying(128)
+    token character varying(128),
+    address character varying(256)
 );
 
 
@@ -217,7 +217,7 @@ SELECT pg_catalog.setval('public.liabilities_id', 13, true);
 -- Name: operation_id; Type: SEQUENCE SET; Schema: public; Owner: autostorage
 --
 
-SELECT pg_catalog.setval('public.operation_id', 67, true);
+SELECT pg_catalog.setval('public.operation_id', 84, true);
 
 
 --
@@ -240,6 +240,23 @@ COPY public.operations (id, type, status, time_added, code, destination, address
 65	export	complete	1584035289635	595381	0	1050	asasdasd	4
 66	import	complete	1584037833191	8273637838362621	1010	0	namename	4
 67	export	complete	1584037863956	288818	0	1010	namename	4
+69	import	canceled	1584206551024	23552	1010	0	my stock #23552	4
+68	export	canceled	1584197519436	309326	0	10	my special stock #32546543	4
+70	export	canceled	1584208679739	213548	0	10	my special stock #32546543	4
+72	import	canceled	1584208895635	24655	2002	0	dfghdfg	4
+71	import	canceled	1584208878018	24655	1010	0	namename	4
+73	import	canceled	1584209139491	12345	1010	0	asdasd	4
+74	import	canceled	1584209170556	12345	2002	0	asdasdadsadadasad	4
+75	import	canceled	1584209244446	12345	1010	0	namename	4
+76	import	canceled	1584209255206	12345	2002	0	asdasd	4
+78	import	canceled	1584210091163	1234	2002	0	qqwrq	4
+77	import	canceled	1584210070130	1234	1010	0	asdsdas	4
+79	import	canceled	1584210138829	1234	1010	0	asasdas	4
+80	import	canceled	1584210159302	1234	2002	0	asdadsdsdddd	4
+81	import	canceled	1584210361341	1234	1010	0	namename	4
+82	import	canceled	1584210373399	1234	2002	0	assdasd	4
+83	import	canceled	1584210748663	1234	1010	0	asdasd	4
+84	import	canceled	1584210786478	1234	2002	0	asdas	4
 \.
 
 
@@ -248,8 +265,6 @@ COPY public.operations (id, type, status, time_added, code, destination, address
 --
 
 COPY public.storageunits (address, owner_id, name, time_purchased, description, status, operation_code) FROM stdin;
-1	-1	storage unit	0	this is a new empty storage unit	vacant	\N
-10	4	my special stock #32546543	1583874812245	20 fire extinguishers class A	occupied	\N
 9	13	box	1583837325113	time's relative	vacant	\N
 2222	0	slot 2	\N	this is a slot	vacant	\N
 3333	0	slot 3	\N	this is a slot	procesing	\N
@@ -265,9 +280,11 @@ COPY public.storageunits (address, owner_id, name, time_purchased, description, 
 8	12	slot	1583426971751	this is a new empty slot	vacant	\N
 2	12	test	1583426883923	test	vacant	\N
 6	7	Agshhssh	1583412436077	Jdhdhdhs	occupied	\N
-1010	4	storage unit	1583874812245	this is an empty storage unit	vacant	\N
-2002	4	storage unit	1584037900094	this is a new empty storage unit	vacant	\N
 1050	-1	storage unit	0	this is a description	vacant	\N
+10	4	my special stock #32546543	1583874812245	20 fire extinguishers class A	occupied	\N
+1010	4	storage unit	1583874812245	this is a description	vacant	\N
+2002	4	storage unit	1584037900094	this is a description	vacant	\N
+1	4	storage unit	1584306007405	this is a new empty storage unit	vacant	\N
 \.
 
 
@@ -282,20 +299,20 @@ SELECT pg_catalog.setval('public.user_id', 13, true);
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: autostorage
 --
 
-COPY public.users (id, first_name, last_name, username, password, email, age, failed_logins, token) FROM stdin;
-2	Georgi	bald	asdfghj	ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f	gbaldjiev20204@gmail.com	\N	0	\N
-13	John	Smith	JohnSmith	ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f	smith@gmail.com	\N	0	MMPUpUH8u4ThMuaDdUJxlzYlzjmU9zGyfRBIsKCxihQduMmSvMbZvZ5xNNPyljcF
-3	Georgi	baldjie	asdasdasd	8bb0cf6eb9b17d0f7d22b456f121257dc1254e1f01665370476383ea776df414	gbaldjiev200s4@gmail.com	\N	0	\N
-1	George	Baldjiev	ssznakabulgarian	$2b$10$.nHjtpNhu6imxIRoBZBuPOLJbSC5Cv628FL7bu5QnJr8KmqqYS5ou	gbaldjiev2004@gmail.com	15	3	\N
-4	Georgi	asd	asdasd	688787d8ff144c502c7f5cffaafe2cc588d86079f9de88304c26b0cb99ce91c6	gbaldjiev20a04@gmail.com	\N	0	QquUOHfCJTslZFWfBuB3naxwhWzcl2yZCyKaZ4OUuCNO5jZlmJ7RhliYtziJFNme
-6	Georgi	Baldjiev	myPhone	ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f	gbaldjiev20040@gmail.com	\N	0	\N
-5	Georgi	Baldjiev2	ssznakabg3	5fd924625f6ab16a19cc9807c7c506ae1813490e4ba675f843d5a10e0baacdb8	gbaldjiev2000@gmail.com	\N	0	TTqEeaiE3xOHw3vppE5xZucCBnac1aiAxz6GCdY8oPW1ZettsHSEv5O6kEimgxix
-8	asdasdsdasd	asdasdasdasdasd	asdasdasdasd	a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3	asdasdasdasd@gmail.com	\N	0	2eKTGgrvqSwRBhoECB8l9MzLn3pnxFXGztQz5MdVmg6v7DvllCLHXDTsrFbf4ke4
-9	mynameisname	lastname	thisismyname	a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3	asd@gmail.com	\N	0	\N
-10	1234	1234	qwerty	65e84be33532fb784c48129675f9eff3a682b27168c0ea744b2cf58ee02337c5	qwert@gmail.com	\N	0	0lRXITpxPpo0fhXbMkDsrn7fgWiccmhl8QYN9xMDA9J9Qwyj4XJlvHS4pCZQCU9Z
-11	Asdfgg	Asdfgh	Asdfgh	8588310a98676af6e22563c1559e1ae20f85950792bdcd0c8f334867c54581cd	asdfgh@gmail.com	\N	0	\N
-7	test	test	test	a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3	test@test123.com	\N	0	xzglHJvok36lRH4RaF3amv0Bdmx9vksv224JPkz62WCXkZDNlvdeo2JjeBomsnh7
-12	test2	test2	test2	a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3	test2@test2.com	\N	0	\N
+COPY public.users (id, first_name, last_name, username, password, email, failed_logins, token, address) FROM stdin;
+2	Georgi	bald	asdfghj	ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f	gbaldjiev20204@gmail.com	0	\N	\N
+13	John	Smith	JohnSmith	ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f	smith@gmail.com	0	MMPUpUH8u4ThMuaDdUJxlzYlzjmU9zGyfRBIsKCxihQduMmSvMbZvZ5xNNPyljcF	\N
+3	Georgi	baldjie	asdasdasd	8bb0cf6eb9b17d0f7d22b456f121257dc1254e1f01665370476383ea776df414	gbaldjiev200s4@gmail.com	0	\N	\N
+1	George	Baldjiev	ssznakabulgarian	$2b$10$.nHjtpNhu6imxIRoBZBuPOLJbSC5Cv628FL7bu5QnJr8KmqqYS5ou	gbaldjiev2004@gmail.com	3	\N	\N
+6	Georgi	Baldjiev	myPhone	ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f	gbaldjiev20040@gmail.com	0	\N	\N
+5	Georgi	Baldjiev2	ssznakabg3	5fd924625f6ab16a19cc9807c7c506ae1813490e4ba675f843d5a10e0baacdb8	gbaldjiev2000@gmail.com	0	TTqEeaiE3xOHw3vppE5xZucCBnac1aiAxz6GCdY8oPW1ZettsHSEv5O6kEimgxix	\N
+8	asdasdsdasd	asdasdasdasdasd	asdasdasdasd	a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3	asdasdasdasd@gmail.com	0	2eKTGgrvqSwRBhoECB8l9MzLn3pnxFXGztQz5MdVmg6v7DvllCLHXDTsrFbf4ke4	\N
+9	mynameisname	lastname	thisismyname	a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3	asd@gmail.com	0	\N	\N
+10	1234	1234	qwerty	65e84be33532fb784c48129675f9eff3a682b27168c0ea744b2cf58ee02337c5	qwert@gmail.com	0	0lRXITpxPpo0fhXbMkDsrn7fgWiccmhl8QYN9xMDA9J9Qwyj4XJlvHS4pCZQCU9Z	\N
+4	Georgi	asd	asdasd	688787d8ff144c502c7f5cffaafe2cc588d86079f9de88304c26b0cb99ce91c6	gbaldjiev20a04@gmail.com	0	f2uddIOQFOc3P184XiCPo00EneOboqotVnTPMxr4O8KjyMwGqtZOB8Cks3xtjgYe	\N
+11	Asdfgg	Asdfgh	Asdfgh	8588310a98676af6e22563c1559e1ae20f85950792bdcd0c8f334867c54581cd	asdfgh@gmail.com	0	\N	\N
+7	test	test	test	a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3	test@test123.com	0	xzglHJvok36lRH4RaF3amv0Bdmx9vksv224JPkz62WCXkZDNlvdeo2JjeBomsnh7	\N
+12	test2	test2	test2	a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3	test2@test2.com	0	\N	\N
 \.
 
 

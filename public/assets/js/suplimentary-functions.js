@@ -144,6 +144,15 @@ var importCard,
     operationsTableRowTemplate,
     cardsContainerElement,
     liabilitiesTableRefreshButton,
+    profileUpdateFileUpload,
+    profileUpdateFirstNameInput,
+    profileUpdateLastNameInput,
+    profileUpdateEmailInput,
+    profileUpdateUsernameInput,
+    profileUpdateAddressInput,
+    profileUpdateSubmitButton,
+    profileUpdateFileUploadLabel,
+    profileUpdateThumbnail,
     cardsUpdateInterval,
     storageUnitPrice = 2.4916,
     vatRate = 20;
@@ -202,6 +211,16 @@ function setUtilityVars() {
     // ------ login/register ------
     loginButton = document.getElementById("login-button");
     registerButton = document.getElementById("register-button");
+    // ------ profile update ------
+    profileUpdateFileUpload = document.getElementById('profile-update-file-upload');
+    profileUpdateFirstNameInput = document.getElementById('profile-update-first-name-input');
+    profileUpdateLastNameInput = document.getElementById('profile-update-last-name-input');
+    profileUpdateEmailInput = document.getElementById('profile-update-email-input');
+    profileUpdateUsernameInput = document.getElementById('profile-update-username-input');
+    profileUpdateAddressInput = document.getElementById('profile-update-address-input');
+    profileUpdateSubmitButton = document.getElementById('profile-update-submit-button');
+    profileUpdateFileUploadLabel = document.getElementById('profile-update-file-upload-label');
+    profileUpdateThumbnail = document.getElementById('profile-update-thumbnail');
     // ------ purchse ------
     purchasePriceSpan = document.getElementById('storage-unit-purchase-price-span');
     purchaseStorageNumberInput = document.getElementById('storage-unit-purchase-number');
