@@ -65,6 +65,7 @@ window.onRedirect.push(function () {
             if (!success) handleErrors(error);
             else {
                 console.log(result);
+                redirect('profile.html');
             }
         });
     }
