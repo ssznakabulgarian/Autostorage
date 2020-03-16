@@ -13,8 +13,13 @@ function isEmailValid(email) {
   return !isEmpty(email) && re.test(String(email).toLowerCase());
 }
 
-function isNameValid(name) {
-  var re = /^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$/;
+function isFirstNameValid(name) {
+  var re = /^[A-Za-z]+/;
+  return !isEmpty(name) && re.test(name);
+}
+
+function isLastNameValid(name) {
+  var re = /^[A-Za-z]+/;
   return !isEmpty(name) && re.test(name);
 }
 
@@ -26,6 +31,10 @@ function isPasswordValid(password) {
   return !isEmpty(password) && !(/\s/.test(password));
 }
 
+function isAddressValid(address) {
+  return !isEmpty(address) && address.length < 300;
+}
+
 function isTokenValid(token) {
   return !isEmpty(token) && token.length == 64;
 }
@@ -34,13 +43,13 @@ function isRequestValid(req) {
   return !isEmpty(req) && !isEmpty(req.body);
 }
 
-async function isUsernameAvailable(req) {
-  var row = await database.manyOrNone('SELECT id FROM users WHERE username=$(username)', req.body);
+async function isUsernameAvailable(username) {
+  var row = await database.manyOrNone('SELECT id FROM users WHERE username=$(username)', {username: username});
   return row.length == 0;
 }
 
-async function isEmailAvaliable(req) {
-  var row = await database.manyOrNone('SELECT id FROM users WHERE email=$(email)', req.body);
+async function isEmailAvailable(email) {
+  var row = await database.manyOrNone('SELECT id FROM users WHERE email=$(email)', {email: email});
   return row.length == 0;
 }
 
@@ -55,10 +64,10 @@ router.post('/register', async function (req, res) {
   };
   if (!isRequestValid(req)) result.error.push("invalidRequest");
   if (!isEmailValid(req.body.email)) result.error.push("invalidEmail");
+  else if (!await isEmailAvailable(req.body.email)) result.error.push("emailTaken");
   if (!isUsernameValid(req.body.username)) result.error.push("invalidUsername");
+  else if (!await isUsernameAvailable(req.body.username)) result.error.push("usernameTaken");
   if (!isPasswordValid(req.body.password)) result.error.push("invalidPassword");
-  if (!await isUsernameAvailable(req)) result.error.push("usernameTaken");
-  if (!await isEmailAvaliable(req)) result.error.push("emailTaken");
 
   if (result.error.length == 0) {
     req.body.password = encryptor.cryptPassword(req.body.password);
@@ -185,32 +194,50 @@ router.post('/update', async function (req, res) {
   };
   if (!isRequestValid(req)) result.error.push("invalidRequest");
   if (!isTokenValid(req.body.token)) result.error.push('invalidToken');
-  if (!isEmpty(req.body.username) && !isUsernameAvailable(req.body.username)) result.error.push("usernameTaken");
-  if (!isEmpty(req.body.username) && !isUsernameValid(req.body.username)) result.error.push("invalidUsername");
-  if (!isEmpty(req.body.email) && !isEmailAvailable(req.body.email)) result.error.push("emailTaken");
-  if (!isEmpty(req.body.email) && !isEmailValid(req.body.email)) result.error.push("invalidEmail");
-  if (!isEmpty(req.body.age) && (typeof (req.body.age) != "number" || req.body.age > 120 || req.body.age < 5)) result.error.push("invalidAge");
-  if (!isEmpty(req.body.name.first) && !isEmpty(req.body.name.last) && !isNameValid(req.body.name.first + ' ' + req.body.name.last)) result.error.push("invalidName");
-  if (!isEmpty(req.body.password) && !isPasswordValid(req.body.password)) result.error.push("invalidPassword");
 
-  result.data = req.body;
   if (result.error.length == 0) {
-    if (!isEmpty(req.body.username)) {
-      await database.none("UPDATE users SET username=$(useranme) WHERE token=$token", req.body);
-    }
-    if (!isEmpty(req.body.email)) {
-      await database.none("UPDATE users SET email=$(email) WHERE token=$token", req.body);
-    }
-    if (!isEmpty(req.body.age)) {
-      await database.none("UPDATE users SET age=$(age) WHERE token=$token", req.body);
-    }
-    if (!isEmpty(req.body.name.first) && !isEmpty(req.body.name.last)) {
-      await database.none("UPDATE users SET first_name=$(name.first) last_name=$(name.last) WHERE token=$token", req.body);
-    }
-    if (!isEmpty(req.body.password)) {
-      req.body.password = encryptor.cryptPassword(req.body.password);
-      await database.none("UPDATE users SET password=$(password)", req.body);
-      result.data.password = "passwordUpdated";
+    var row = await database.oneOrNone("SELECT id FROM users WHERE token=$(token)", req.body);
+    if (!row) result.error.push("wrongOrExpiredToken");
+    else {
+      req.body.id = row.id;
+      if (req.body.hasOwnProperty('username')) {
+        if (!isUsernameValid(req.body.username)) result.error.push("invalidUsername");
+        else if (!await isUsernameAvailable(req.body.username)) result.error.push("usernameTaken");
+        else await database.none("UPDATE users SET username=$(username) WHERE id=$(id)", req.body);
+      }
+      if (req.body.hasOwnProperty('email')) {
+        if (!isEmailValid(req.body.email)) result.error.push("invalidEmail");
+        else if (!await isEmailAvailable(req.body.email)) result.error.push("emailTaken");
+        else await database.none("UPDATE users SET email=$(email) WHERE id=$(id)", req.body);
+      }
+      if (req.body.hasOwnProperty('name')) {
+        if (req.body.name.hasOwnProperty('first')) {
+          if (!isFirstNameValid(req.body.name.first)) result.error.push('invalidFirstName');
+          else await database.none("UPDATE users SET first_name=$(name.first) WHERE id=$(id)", req.body);
+        }
+        if (req.body.name.hasOwnProperty('last')) {
+          if (!isLastNameValid(req.body.name.last)) result.error.push('invalidLastName');
+          else await database.none("UPDATE users SET last_name=$(name.last) WHERE id=$(id)", req.body);
+        }
+      }
+      if (req.body.hasOwnProperty('address')) {
+        if (!isAddressValid(req.body.address)) result.error.push("invalidAddress");
+        else await database.none("UPDATE users SET address=$(address) WHERE id=$(id)", req.body);
+      }
+      if (req.body.hasOwnProperty('password')) {
+        if (!isPasswordValid(req.body.password)) result.error.push("invalidPassword");
+        else {
+          req.body.password = encryptor.cryptPassword(req.body.password);
+          await database.none("UPDATE users SET password=$(password) WHERE id=$(id)", req.body);
+          result.data.password = "passwordUpdated";
+        }
+      }
+      if (req.body.hasOwnProperty('profile_picture')) {
+        if (req.body.profile_picture.length >= 100000) result.error.push("profilePictureSizeTooLarge");
+        else await database.none("UPDATE users SET profile_picture=$(profile_picture) WHERE id=$(id)", req.body);
+      }
+      delete req.body.id;
+      result.data = req.body;
     }
   }
   res.json(result);
@@ -231,7 +258,7 @@ router.post('/purchase', async function (req, res) {
       req.body.id = row.id;
       req.body.time = Date.now();
       try {
-        await database.none('UPDATE storageunits SET owner_id=$(id), time_purchased=$(time) WHERE address IN (SELECT address FROM storageunits WHERE owner_id=-1 LIMIT '+parseInt(req.body.amount)+')', req.body);
+        await database.none('UPDATE storageunits SET owner_id=$(id), time_purchased=$(time) WHERE address IN (SELECT address FROM storageunits WHERE owner_id=-1 LIMIT ' + parseInt(req.body.amount) + ')', req.body);
       } catch (err) {
         console.log(err);
         result.error.push('invalidAmount');

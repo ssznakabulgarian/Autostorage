@@ -7,6 +7,20 @@ function fireRedirect() {
     });
 }
 
+function redirect(page) {
+    request('/redirect', null, {
+        page: page
+    }, function (success, result, error, e) {
+        if (!success) console.log(error);
+        else {
+            result = result.substring(result.indexOf('<body'), result.indexOf('</body>'));
+            document.body.innerHTML = result;
+            window.currentPage = page;
+            fireRedirect();
+        }
+    });
+}
+
 function request(url, urlParams, data, onLoad /*(bool success, Object result, String error, Event e)*/ ) {
     var request = new XMLHttpRequest();
     request.addEventListener("load", (e) => {
@@ -48,18 +62,39 @@ function request(url, urlParams, data, onLoad /*(bool success, Object result, St
     }
 }
 
-function redirect(page) {
-    request('/redirect', null, {
-        page: page
-    }, function (success, result, error, e) {
-        if (!success) console.log(error);
-        else {
-            result = result.substring(result.indexOf('<body'), result.indexOf('</body>'));
-            document.body.innerHTML = result;
-            window.currentPage = page;
-            fireRedirect();
-        }
+function arrayBufferToBase64(buffer) {
+    var binary = '';
+    var bytes = new Uint8Array(buffer);
+    for (var i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+}
+
+function base64ToArrayBuffer(base64) {
+    var binary_string = window.atob(base64);
+    var bytes = new Uint8Array(binary_string.length);
+    for (var i = 0; i < binary_string.length; i++) {
+        bytes[i] = binary_string.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+function readFileAsArrayBuffer(file) {
+    return new Promise((resolve, reject) => {
+        var fileReader = new FileReader();
+        fileReader.addEventListener('error', () => {
+            reject(fileReader.error);
+        });
+        fileReader.addEventListener('load', () => {
+            resolve(fileReader.result);
+        });
+        fileReader.readAsArrayBuffer(file);
     });
+}
+
+function readArrayBufferAsFile(array) {
+    return new Blob([array]);
 }
 
 function handleErrors(errors) {
@@ -123,6 +158,7 @@ var importCard,
     isExportDialogueOpen = false,
     isMaintenanceDialogueOpen = false,
     navbarNameElement,
+    navbarImageElement,
     localStorage,
     loginButton,
     registerButton,
@@ -160,12 +196,16 @@ var importCard,
 function setUtilityVars() {
     // ------ window/general ------
     localStorage = window.localStorage;
-    navbarNameElement = document.getElementById('navbar-user-name');
+    navbarNameElement = document.getElementById('navbar-username');
+    navbarImageElement = document.getElementById('navbar-profile-picture');
     if (navbarNameElement) request('/users/read', null, {
         token: localStorage.getItem('token')
     }, (success, result, error, e) => {
         if (!success) handleErrors(error);
-        else navbarNameElement.innerHTML = result.name.first + ' ' + result.name.last;
+        else {
+            navbarNameElement.innerHTML = result.name.first + ' ' + result.name.last;
+            navbarImageElement.src = URL.createObjectURL(readArrayBufferAsFile(base64ToArrayBuffer(result.profile_picture)));
+        }
     });
     // ------ dashboard ------
     dashboardMainContainer = document.getElementById('main-cards-container');
