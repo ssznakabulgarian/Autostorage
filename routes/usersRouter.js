@@ -3,6 +3,7 @@ var router = express.Router();
 var database = require('../database');
 var encryptor = require('../encryptor');
 var randomstring = require('randomstring');
+var mailer = require('../mailer');
 
 function isEmpty(value) {
   return value == '' || value == null || value == undefined;
