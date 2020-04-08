@@ -32,7 +32,6 @@ fieldset legend + * {
 }
 
 .toggle {
-  margin: 0 0 1.5rem;
   box-sizing: border-box;
   font-size: 0;
   display: flex;
@@ -54,7 +53,7 @@ fieldset legend + * {
   box-sizing: border-box;
   position: relative;
   display: inline-block;
-  border: solid 1px #DDD;
+  border: solid 1px #213140;
   background-color: #FFF;
   font-size: 1rem;
   line-height: 140%;
@@ -82,7 +81,7 @@ fieldset legend + * {
   background-color: #4e73df;
   color: #FFF;
   box-shadow: 0 0 10px rgba(102, 179, 251, 0.5);
-  border-color: #4e73df;
+  border-color: #213140;
   z-index: 1;
 }
 

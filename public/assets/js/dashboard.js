@@ -1,11 +1,8 @@
 window.onRedirect.push(function () {
-    if (!localStorage.getItem('token')) return;
     if (window.currentPage != "dashboard.html") return;
-    setUtilityVars();
+    
+    isExportDialogueOpen=isImportDialogueOpen=isMaintenanceDialogueOpen=false;
 
     genStorageUnitCards();
-    cardsUpdateInterval = setInterval(() => {
-        genStorageUnitCards();
-    }, 5000);
-
+    cardsUpdateInterval = setInterval(genStorageUnitCards, 5000);
 });

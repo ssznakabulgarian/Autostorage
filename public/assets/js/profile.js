@@ -1,10 +1,5 @@
 window.onRedirect.push(function () {
-    if (!localStorage.getItem('token')) return;
     if (window.currentPage != "profile.html") return;
-
-    setUtilityVars();
-
-    if (cardsUpdateInterval) clearInterval(cardsUpdateInterval);
 
     request('/users/read', null, {
         token: localStorage.getItem('token')

@@ -2,19 +2,23 @@ window.onRedirect = [];
 window.curentPage = "";
 
 function fireRedirect() {
-    window.onRedirect.forEach(funct => {
-        funct();
+    if (window.curentPage != "dashboard.html" && cardsUpdateInterval) clearInterval(cardsUpdateInterval);
+    if (window.currentPage != "login.html" && window.currentPage != "register.html" && window.currentPage != "forgot-password.html" && !localStorage.getItem('token')) redirect('login.html');
+    setUtilityVars();
+    window.onRedirect.forEach(eventListener => {
+        eventListener();
     });
 }
 
 function redirect(page) {
     request('/redirect', null, {
         page: page
-    }, function (success, result, error, e) {
-        if (!success) console.log(error);
+    }, function (success, result, errors, e) {
+        if (!success) console.log(errors);
         else {
-            result = result.substring(result.indexOf('<body'), result.indexOf('</body>'));
+            result = result.substring(result.indexOf('<body'), result.indexOf('<script'));
             document.body.innerHTML = result;
+            document.body.id="page-top";
             window.currentPage = page;
             fireRedirect();
         }
@@ -93,8 +97,20 @@ function readFileAsArrayBuffer(file) {
     });
 }
 
-function readArrayBufferAsFile(array) {
-    return new Blob([array]);
+function readArrayBufferAsFile(buffer) {
+    return new Blob([buffer]);
+}
+
+function msToTime(duration) {
+    var seconds = Math.floor((duration / 1000) % 60),
+        minutes = Math.floor((duration / (1000 * 60)) % 60),
+        hours = Math.floor(duration / (1000 * 60 * 60));
+
+    hours = (hours < 10) ? "0" + hours : hours;
+    minutes = (minutes < 10) ? "0" + minutes : minutes;
+    seconds = (seconds < 10) ? "0" + seconds : seconds;
+
+    return hours + ":" + minutes + ":" + seconds;
 }
 
 function handleErrors(errors) {
@@ -191,7 +207,8 @@ var importCard,
     profileUpdateThumbnail,
     cardsUpdateInterval,
     storageUnitPrice = 2.4916,
-    vatRate = 20;
+    vatRate = 20,
+    QRCodeVideo;
 
 function setUtilityVars() {
     // ------ window/general ------
@@ -200,8 +217,8 @@ function setUtilityVars() {
     navbarImageElement = document.getElementById('navbar-profile-picture');
     if (navbarNameElement) request('/users/read', null, {
         token: localStorage.getItem('token')
-    }, (success, result, error, e) => {
-        if (!success) handleErrors(error);
+    }, (success, result, errors, e) => {
+        if (!success) handleErrors(errors);
         else {
             navbarNameElement.innerHTML = result.name.first + ' ' + result.name.last;
             navbarImageElement.src = URL.createObjectURL(readArrayBufferAsFile(base64ToArrayBuffer(result.profile_picture)));
@@ -267,24 +284,12 @@ function setUtilityVars() {
     purchaseSubmitButton = document.getElementById('storage-unit-purchase-submit-button');
 }
 
-function msToTime(duration) {
-    var seconds = Math.floor((duration / 1000) % 60),
-        minutes = Math.floor((duration / (1000 * 60)) % 60),
-        hours = Math.floor(duration / (1000 * 60 * 60));
-
-    hours = (hours < 10) ? "0" + hours : hours;
-    minutes = (minutes < 10) ? "0" + minutes : minutes;
-    seconds = (seconds < 10) ? "0" + seconds : seconds;
-
-    return hours + ":" + minutes + ":" + seconds;
-}
-
 function logout() {
     if (localStorage.getItem('token')) {
         request('/users/logout', null, {
             token: localStorage.getItem('token')
-        }, (success, result, err, e) => {
-            if (!success) handleErrors(err);
+        }, (success, result, errors, e) => {
+            if (!success) handleErrors(errors);
             else alert("successfully logged out: " + result.name.first + " " + result.name.last);
             localStorage.removeItem('token');
             redirect("login.html");
@@ -299,6 +304,9 @@ function closeExportDialogue() {
 }
 
 function closeImportDialogue() {
+    if (QRCodeVideo && QRCodeVideo.srcObject) QRCodeVideo.srcObject.getTracks().forEach((track) => {
+        track.stop();
+    });
     var card = document.getElementById('import-card');
     card.parentElement.removeChild(card);
     isImportDialogueOpen = false;
@@ -309,26 +317,6 @@ function closeMaintenanceDialogue() {
     card.parentElement.removeChild(card);
     isMaintenanceDialogueOpen = false;
 }
-
-// function setAvailableSlots(element) {
-//     var availableSlotsContainer = element.firstElementChild.firstElementChild.lastElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.lastElementChild.firstElementChild;
-//     var availableSlotTemplate = element.firstElementChild.firstElementChild.lastElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.cloneNode(true);
-//     availableSlotsContainer.removeChild(element.firstElementChild.firstElementChild.lastElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild.lastElementChild.firstElementChild.firstElementChild);
-//     request('/warehouse/list_available_slots', null, {
-//         data: 'data'
-//     }, (success, result, error, e) => {
-//         if (!success) handleErrors(error);
-//         else {
-//             result.forEach(element => {
-//                 var availableSlotTmp = availableSlotTemplate.cloneNode(true);
-//                 availableSlotTmp.setAttribute('value', element.address);
-//                 availableSlotTmp.innerHTML = element.name;
-//                 availableSlotsContainer.appendChild(availableSlotTmp);
-//             });
-//             availableSlotsContainer.firstElementChild.setAttribute('selected', '');
-//         }
-//     });
-// }
 
 function openExportDialogue(item) {
     if (isExportDialogueOpen) closeExportDialogue();
@@ -347,15 +335,14 @@ function openExportDialogue(item) {
             item: {
                 address: selectedCardAddress
             }
-        }, (success, result, error, e) => {
-            if (!success) handleErrors(error);
+        }, (success, result, errors, e) => {
+            if (!success) handleErrors(errors);
             else {
                 console.log(result);
                 genStorageUnitCards();
             }
+            closeExportDialogue();
         });
-        dashboardMainContainer.removeChild(tmp);
-        isExportDialogueOpen = false;
     });
 }
 
@@ -372,7 +359,6 @@ function openImportDialogue(item) {
     if (isMaintenanceDialogueOpen) closeMaintenanceDialogue();
     var selectedCardAddress = item.id;
     var tmp = importCardTemplate.cloneNode(true);
-    //  setAvailableSlots(tmp);
     isImportDialogueOpen = true;
     var operationCode = null;
     var useQRCodeButton = tmp.querySelector('#import-use-QR-code');
@@ -380,49 +366,36 @@ function openImportDialogue(item) {
     var QRCodeInputBody = tmp.querySelector('#import-QR-code-input-body');
     var numberCodeInputBody = tmp.querySelector('#import-number-code-input-body');
     var numberCodeInput = tmp.querySelector('#import-number-code-input');
-    var QRCodeVideo = tmp.querySelector('#import-card-video');
+    QRCodeVideo = tmp.querySelector('#import-card-video');
     var QRCodeCanvas = tmp.querySelector('#import-card-canvas');
+    numberCodeInput.value = operationCode = Math.round(Math.random() * 8999999) + 1000000;
     useQRCodeButton.onclick = function () {
+        document.getElementById("import-use-number-code-radio-input").removeAttribute('checked');
+        document.getElementById("import-use-QR-code-radio-input").setAttribute('checked', '');
         QRCodeInputBody.style = 'display: inline-block';
         numberCodeInputBody.style = 'display: none;';
 
         var ctx = QRCodeCanvas.getContext('2d');
-        var webcam = QRCodeVideo;
         var continueCheck = true;
-
-        //useNumberCodeButton.addEventListener('click', () => {
-        setTimeout(() => {
-            document.addEventListener('click', () => {
-                webcam.srcObject.getTracks().forEach((track) => {
-                    track.stop();
-                });
-                continueCheck = false;
-            });
-        }, 500);
 
         function foundCode(code) {
             operationCode = code;
-            console.log(code);
-
-            if (isNaN(code)) {
-                alert('Your code must contain only numbers!\ncode: ' + code);
-                return;
+            if (isNaN(code)) alert('Your code must contain only numbers!\ncode: ' + code);
+            else {
+                continueCheck = false;
+                QRCodeVideo.srcObject.getTracks().forEach((track) => {
+                    track.stop();
+                });
+                alert('Code successfully detected: ' + code);
             }
-
-            webcam.srcObject.getTracks().forEach((track) => {
-                track.stop();
-            });
-            webcam.src = 'assets/img/tick.png';
-            alert('Code successfully detected: ' + code);
-            continueCheck = false;
         }
 
         function startCapture(constraints) {
             navigator.mediaDevices.getUserMedia(constraints)
                 .then((stream) => {
-                    webcam.srcObject = stream;
-                    webcam.setAttribute('playsinline', true);
-                    webcam.setAttribute('controls', true);
+                    QRCodeVideo.srcObject = stream;
+                    QRCodeVideo.setAttribute('playsinline', true);
+                    QRCodeVideo.setAttribute('controls', true);
                     setTimeout(() => {
                         document.querySelector('video').removeAttribute('controls');
                     });
@@ -484,7 +457,7 @@ function openImportDialogue(item) {
         function decodeFrame() {
 
             try {
-                ctx.drawImage(webcam, 0, 0, QRCodeCanvas.width, QRCodeCanvas.height);
+                ctx.drawImage(QRCodeVideo, 0, 0, QRCodeCanvas.width, QRCodeCanvas.height);
                 var imgData = ctx.getImageData(0, 0, QRCodeCanvas.width, QRCodeCanvas.height);
 
                 if (imgData.data) {
@@ -500,17 +473,22 @@ function openImportDialogue(item) {
         decodeFrame();
     }
     useNumberCodeButton.onclick = function () {
+        document.getElementById("import-use-number-code-radio-input").setAttribute('checked', '');
+        document.getElementById("import-use-QR-code-radio-input").removeAttribute('checked');
         QRCodeInputBody.style = 'display: none;';
         numberCodeInputBody.style = 'display: inline-block;';
+        if (QRCodeVideo) QRCodeVideo.srcObject.getTracks().forEach((track) => {
+            track.stop();
+        });
     }
     numberCodeInput.onclick = numberCodeInput.onkeyup = () => {
         operationCode = numberCodeInput.value;
     }
     dashboardMainContainer.appendChild(tmp);
     document.getElementById('import-submit-button').addEventListener('click', (e) => {
+        e.preventDefault();
         if (!operationCode) alert('You must enter a number code or scan a QR code.');
         else {
-            e.preventDefault();
             request('/warehouse/import', null, {
                 token: localStorage.getItem('token'),
                 item: {
@@ -519,15 +497,14 @@ function openImportDialogue(item) {
                     address: selectedCardAddress
                 },
                 code: operationCode
-            }, (success, result, error, e) => {
-                if (!success) handleErrors(error);
+            }, (success, result, errors, e) => {
+                if (!success) handleErrors(errors);
                 else {
                     console.log(result);
+                    closeImportDialogue();
                     genStorageUnitCards();
                 }
             });
-            dashboardMainContainer.removeChild(tmp);
-            isImportDialogueOpen = false;
         }
     });
 }
@@ -547,11 +524,12 @@ function openMaintenanceDialogue(item) {
             request('/warehouse/cancel_operation', null, {
                 token: localStorage.getItem('token'),
                 address: selectedCardAddress
-            }, (success, result, error, e) => {
-                if (!success) handleErrors(error);
+            }, (success, result, errors, e) => {
+                if (!success) handleErrors(errors);
                 else {
                     console.log(result);
                     closeMaintenanceDialogue();
+                    genStorageUnitCards();
                 }
             });
         });
@@ -562,11 +540,12 @@ function openMaintenanceDialogue(item) {
             request('/warehouse/release', null, {
                 token: localStorage.getItem('token'),
                 address: selectedCardAddress
-            }, (success, result, error, e) => {
-                if (!success) handleErrors(error);
+            }, (success, result, errors, e) => {
+                if (!success) handleErrors(errors);
                 else {
                     console.log(result);
                     closeMaintenanceDialogue();
+                    genStorageUnitCards();
                 }
             });
         });
@@ -578,8 +557,8 @@ function genStorageUnitCards() {
 
     request('/warehouse/list_storage_units', null, {
         token: localStorage.getItem('token')
-    }, (success, result, error, e) => {
-        if (!success) handleErrors(error);
+    }, (success, result, errors, e) => {
+        if (!success) handleErrors(errors);
         else {
             template = storageUnitCardTemplate;
             while (cardsContainerElement.firstChild) cardsContainerElement.removeChild(cardsContainerElement.lastChild);
@@ -657,17 +636,17 @@ function genStorageUnitCards() {
 }
 
 function genLiabilitiesTable() {
-    var tmp;
     request('/warehouse/list_liabilities', null, {
         token: localStorage.getItem('token')
-    }, (success, result, error, e) => {
-        if (!success) handleErrors(error);
+    }, (success, result, errors, e) => {
+        if (!success) handleErrors(errors);
         else {
             while (liabilitiesTable.firstElementChild) {
                 liabilitiesTable.removeChild(liabilitiesTable.firstElementChild)
             }
 
             function addEntry(element) {
+                var tmp;
                 tmp = liabilitiesTableRowTemplate.cloneNode(true);
                 tmp.children[0].innerHTML = element.type;
                 tmp.children[1].innerHTML = element.item_name;
@@ -687,7 +666,7 @@ function genLiabilitiesTable() {
                         addEntry({
                             type: 'storage unit (price until ' + new Date().toLocaleString() + ')',
                             item_name: element.name,
-                            value: '$' + Math.floor(((Math.floor(Date.now() - element.time_purchased) / (1000 * 60 * 60)) * storageUnitPrice * (100 + vatRate) / 100) * 100) / 100,
+                            value: '$' + Math.round(Math.floor((Date.now() - element.time_purchased) / (1000 * 60 * 60)) * storageUnitPrice * (100 + vatRate)) / 100,
                             state: 'not_paid',
                             date: Date.now()
                         });
@@ -702,16 +681,16 @@ function genLiabilitiesTable() {
 }
 
 function genOperationsTable() {
-    var tmp;
     request('/warehouse/list_operations', null, {
         token: localStorage.getItem('token')
-    }, (success, result, error, e) => {
-        if (!success) handleErrors(error);
+    }, (success, result, errors, e) => {
+        if (!success) handleErrors(errors);
         else {
             while (operationsTable.firstElementChild) {
                 operationsTable.removeChild(operationsTable.firstElementChild)
             }
             result.forEach((element) => {
+                var tmp;
                 tmp = operationsTableRowTemplate.cloneNode(true);
                 tmp.children[0].innerHTML = element.type;
                 tmp.children[1].innerHTML = element.item_name;

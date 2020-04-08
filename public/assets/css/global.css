@@ -2,3 +2,8 @@ a:hover {
   cursor: pointer !important;
 }
 
+#import-QR-code-input-body {
+  width: 20rem;
+  max-width: 100%;
+}
+

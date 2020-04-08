@@ -1,15 +1,6 @@
 window.onRedirect.push(function () {
-    if (!localStorage.getItem('token')) return;
     if (window.currentPage != "finances.html") return;
     
-    setUtilityVars();
     genLiabilitiesTable();
-    
-    if (cardsUpdateInterval) clearInterval(cardsUpdateInterval);
-
-    if (liabilitiesTableRefreshButton) {
-        liabilitiesTableRefreshButton.addEventListener('click', () => {
-            genLiabilitiesTable();
-        });
-    }
+    liabilitiesTableRefreshButton.addEventListener('click', genLiabilitiesTable);
 });

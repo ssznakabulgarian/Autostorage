@@ -44,12 +44,16 @@ function isRequestValid(req) {
 }
 
 async function isUsernameAvailable(username) {
-  var row = await database.manyOrNone('SELECT id FROM users WHERE username=$(username)', {username: username});
+  var row = await database.manyOrNone('SELECT id FROM users WHERE username=$(username)', {
+    username: username
+  });
   return row.length == 0;
 }
 
 async function isEmailAvailable(email) {
-  var row = await database.manyOrNone('SELECT id FROM users WHERE email=$(email)', {email: email});
+  var row = await database.manyOrNone('SELECT id FROM users WHERE email=$(email)', {
+    email: email
+  });
   return row.length == 0;
 }
 
@@ -118,7 +122,6 @@ router.post('/login', async function (req, res) {
             token: token
           };
           await database.one("SELECT reset_failed_logins($(id));", row);
-          //res.redirect('../dashboard.html');
         } else {
           result.error.push("wrongPassword");
           await database.one("SELECT failed_login($(id));", row);
@@ -254,20 +257,24 @@ router.post('/purchase', async function (req, res) {
   if (req.body.amount < 1 || req.body.amount > 100) result.error.push('invalidAmount');
   if (result.error.length == 0) {
     var row = await database.oneOrNone("SELECT id FROM users WHERE token=$(token)", req.body);
-    if (row) {
+    if (!row) result.error.push("wrongOrExpiredToken");
+    else {
       req.body.id = row.id;
       req.body.time = Date.now();
-      try {
-        await database.none('UPDATE storageunits SET owner_id=$(id), time_purchased=$(time) WHERE address IN (SELECT address FROM storageunits WHERE owner_id=-1 LIMIT ' + parseInt(req.body.amount) + ')', req.body);
-      } catch (err) {
-        console.log(err);
-        result.error.push('invalidAmount');
+      var available = await database.manyOrNone("SELECT address FROM storageunits WHERE owner_id=-1");
+      if (available.length <= req.body.amount) result.error.push("tooLargeAmount");
+      else {
+        req.body.assigned = [];
+        for (var i = 0; i < req.body.amount; i++) {
+          req.body.assigned.push(available[Math.round(Math.random() * available.length)].address);
+          req.body.last = req.body.assigned[req.body.assigned.length - 1];
+          await database.none("UPDATE storageunits SET owner_id=$(id), time_purchased=$(time) WHERE address=$(last)", req.body);
+        }
+        result.data = {
+          addresses: req.body.assigned,
+          amount: req.body.amount
+        }
       }
-      result.data = {
-        amount: req.body.amount
-      }
-    } else {
-      result.error.push("wrongOrExpiredToken");
     }
   }
   res.json(result);

@@ -1,14 +1,9 @@
 window.onRedirect.push(function () {
-    if (!localStorage.getItem('token')) return;
     if (window.currentPage != "storage_purchase.html") return;
-    
-    setUtilityVars();
-    
-    if (cardsUpdateInterval) clearInterval(cardsUpdateInterval);
     
     var price = () => {
         purchaseStorageNumber = purchaseStorageNumberInput.valueAsNumber;
-        return Math.floor((purchaseStorageNumber * storageUnitPrice * (100 + vatRate) / 100) * 100) / 100;
+        return Math.round((purchaseStorageNumber * storageUnitPrice * (100 + vatRate) / 100) * 100) / 100;
     }
 
     //initial value preview

@@ -18,7 +18,7 @@
 
 <body id="page-top">
     <div id="wrapper">
-        <nav class="navbar navbar-dark align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0">
+        <nav class="navbar navbar-light navbar-expand-md align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0">
             <div class="container-fluid d-flex flex-column p-0">
                 <a class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="/">
                     <div class="sidebar-brand-icon rotate-n-15"><i class="fas fa-warehouse"></i></div>
@@ -26,12 +26,12 @@
                 </a>
                 <hr class="sidebar-divider my-0">
                 <ul class="nav navbar-nav text-light" id="accordionSidebar">
-                    <li class="nav-item" role="presentation"><a class="nav-link" onclick="redirect(&#39;dashboard.html&#39;)"><i class="fas fa-tachometer-alt"></i><span style="color: rgb(255,255,255);">Dashboard</span></a></li>
-                    <li class="nav-item" role="presentation"><a class="nav-link" onclick="redirect(&#39;storage_purchase.html&#39;)"><i class="fas fa-dollar-sign"></i><span style="color: rgb(255,255,255);">Purchase</span></a></li>
-                    <li class="nav-item" role="presentation"><a class="nav-link" onclick="redirect(&#39;finances.html&#39;)"><i class="fas fa-file-invoice-dollar"></i><span style="color: rgb(255,255,255);">Finances</span></a></li>
-                    <li class="nav-item" role="presentation"><a class="nav-link" onclick="redirect(&#39;operations_history.html&#39;)"><i class="fas fa-file-invoice"></i><span style="color: rgb(255,255,255);">Operations history</span></a></li>
+                    <li class="nav-item" role="presentation"><a class="nav-link active" onclick="redirect(&#39;dashboard.html&#39;)"><i class="fas fa-tachometer-alt"></i><span style="color: rgb(255,255,255);">Dashboard</span></a></li>
+                    <li class="nav-item" role="presentation"><a class="nav-link active" onclick="redirect(&#39;storage_purchase.html&#39;)"><i class="fas fa-dollar-sign"></i><span style="color: rgb(255,255,255);">Purchase</span></a></li>
+                    <li class="nav-item" role="presentation"><a class="nav-link active" onclick="redirect(&#39;finances.html&#39;)"><i class="fas fa-file-invoice-dollar"></i><span style="color: rgb(255,255,255);">Finances</span></a></li>
+                    <li class="nav-item" role="presentation"><a class="nav-link active" onclick="redirect(&#39;operations_history.html&#39;)"><i class="fas fa-file-invoice"></i><span style="color: rgb(255,255,255);">Operations history</span></a></li>
                 </ul>
-                <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
+                <div class="text-center d-none d-md-inline"><button class="btn btn-primary active rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
             </div>
         </nav>
         <div class="d-flex flex-column" id="content-wrapper">
@@ -136,7 +136,7 @@
                             </li>
                             <div class="d-none d-sm-block topbar-divider"></div>
                             <li class="nav-item dropdown no-arrow" role="presentation">
-                                <div class="nav-item dropdown no-arrow"><a class="dropdown-toggle nav-link" data-toggle="dropdown" aria-expanded="false" href="#"><span class="d-none d-lg-inline mr-2 text-gray-600 small" id="navbar-username">Valerie Luna</span><img class="border rounded-circle img-profile" id="navbar-profile-picture" src="assets/img/user-icon.png"></a>
+                                <div class="nav-item dropdown no-arrow"><a class="dropdown-toggle nav-link" data-toggle="dropdown" aria-expanded="false" href="#"><span class="d-none d-lg-inline mr-2 text-gray-600 small" id="navbar-username">Jane Dow</span><img class="border rounded-circle img-profile" id="navbar-profile-picture" src="assets/img/user-icon.png"></a>
                                     <div
                                         class="dropdown-menu shadow dropdown-menu-right animated--grow-in" role="menu"><a class="dropdown-item" role="presentation" onclick="redirect(&#39;profile.html&#39;);"><i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>&nbsp;Profile</a>
                                         <div class="dropdown-divider"></div><a class="dropdown-item" role="presentation" onclick="logout();"><i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>&nbsp;Logout</a></div>
@@ -193,7 +193,7 @@
             </div>
         </footer>
     </div>
-    </div><a class="border rounded d-inline scroll-to-top" onclick="document.scrollTop = 0;"><i class="fas fa-angle-up"></i></a>
+    </div><a class="border rounded d-inline scroll-to-top"><i class="fas fa-angle-up"></i></a>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
