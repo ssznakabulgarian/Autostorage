@@ -1,96 +1,33 @@
 var readline = require('readline');
 var SerialPort = require('serialport');
-var request = require('./nodeRequestCreator');
+var Worker = require('worker_threads').Worker;
+var request = require('./nodeRequestCreator.js');
 
 var connectionResponseString = "c",
     connectionString = "c",
-    onData = null,
+    currentConnection = null,
+    onSerialPortData = function () {},
     awaitingCommand = false,
-    processCommand = null,
     mainServerAddress = 'https://server.autostorage.online',
     connectionSecret = '_9e8a7s4y1s2t3o6r5e_',
     operationsList = [],
     isOperationRunning = false,
-    manualMode;
+    manualMode,
+    awaitingCode;
 
 var rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
-async function getArduinoConnection() {
-    var portsList = await SerialPort.list();
-    for (var i = 0; i < portsList.length; i++) {
-        var result = await new Promise((resolve, reject) => {
-            try {
-                console.log("opening port");
-                var connection = new SerialPort(portsList[i].path, {
-                    baudRate: 9600
-                });
-                var finished = false;
-
-                function finish(success) {
-                    if (finished) return;
-                    finished = true;
-                    if (success) resolve(connection);
-                    else {
-                        connection.close((err) => {
-                            console.log("closed port " + connection.path);
-                            console.log(err);
-                        });
-                        resolve(null);
-                    }
-                }
-                connection.on('error', function (err) {
-                    console.log("error: " + err);
-                    console.log('on port ' + connection.path);
-                    finish(false);
-                });
-                onData = (data) => {
-                    var buffer = Buffer.from(data);
-                    if (buffer[buffer.length - 1] == 13 || buffer[buffer.length - 1] == 10) data = data.substring(0, data.length - 1);
-                    if (data == connectionResponseString) finish(true);
-                }
-                connection.on('data', (data) => {
-                    onData(data);
-                });
-                connection.on('open', () => {
-                    console.log('opened port ' + connection.path);
-                    setTimeout(() => {
-                        if (finished) return;
-                        connection.write(connectionString, function (err) {
-                            if (err) {
-                                console.log('error: ' + err);
-                                console.log('on port ' + connection.path);
-                                finished(false);
-                            }
-                        });
-                    }, 1500);
-                    setTimeout(() => {
-                        finish(false);
-                    }, 3000);
-                });
-            } catch (e) {
-                console.log("error: ");
-                console.log(e);
-            }
-        });
-        if (result) return result;
-    };
-}
-
-async function connectArduino() {
-    manualMode=false;
-    var connection = await getArduinoConnection();
-    if (connection) {
-        arduinoMain(connection);
-    } else {
-        console.log('retrying connection...');
-        setTimeout(() => {
-            connectArduino();
-        }, 2000);
-    }
-}
+var QRreadWorker = new Worker("./QRdecoderWorker.js");
+QRreadWorker.on('error', printMessage);
+QRreadWorker.on('exit', printMessage);
+QRreadWorker.on('message', (message) => {
+    if(!awaitingCode) return;
+    process.stdout.write(message + '\n');
+    receivedCode(message);
+});
 
 function printMessage(message) {
     if (awaitingCommand) {
@@ -105,32 +42,94 @@ async function loadOperations() {
         request(mainServerAddress + '/warehouse/list_waiting_operations', {
             secret: connectionSecret
         }, (error, result, body) => {
-            if (error) {
-                //printMessage(error);
-                reject(error);
-            } else if (body.error.length) {
-                //printMessage(body.error);
-                reject(body.error);
-            } else {
-                resolve(body.data);
-            }
+            if (error || body.error.length) reject((error) ? error : body.error);
+            else resolve(body.data);
         });
     });
 }
 
-processCommand = (command) => {
-    printMessage("Processing " + command);
+async function updateOperations() {
+    try {
+        operationsList = await loadOperations();
+    } catch (err) {
+        printMessage('server unreachable ...');
+    }
 }
 
-function getCommand() {
-    awaitingCommand = true;
-    rl.question('> ', (command) => {
-        processCommand(command);
-        awaitingCommand = false;
-    });
+async function connectArduino() {
+    var portsList = await SerialPort.list();
+    for (var i = 0; i < portsList.length; i++) {
+        var result = await new Promise((resolve, reject) => {
+                printMessage("opening port");
+                var connection = new SerialPort(portsList[i].path, {
+                    baudRate: 9600
+                });
+                var finished = false;
+
+                function finish(success) {
+                    if (finished) return;
+                    finished = true;
+                    if (success) {
+                        resolve(connection);
+                        printMessage("connection established on port: " + connection.path);
+                    } else {
+                        connection.close((err) => {
+                            printMessage("closed port " + connection.path);
+                            if (err) printMessage(err);
+                            reject();
+                        });
+                    }
+                }
+                connection.on('error', (err) => {
+                    printMessage(err);
+                    finish(false);
+                });
+                onSerialPortData = (data) => {
+                    var buffer = Buffer.from(data);
+                    if (buffer[buffer.length - 1] == 13 || buffer[buffer.length - 1] == 10) data = data.substring(0, data.length - 1);
+                    if (data == connectionResponseString) finish(true);
+                }
+                connection.on('data', onSerialPortData);
+                connection.on('open', () => {
+                    printMessage('opened port ' + connection.path);
+                    setTimeout(() => {
+                        if (finished) return;
+                        connection.write(connectionString, function (err) {
+                            setTimeout(() => {
+                                finish(false);
+                            }, 1000);
+                            if (err) {
+                                printMessage(err);
+                                finish(false);
+                            };
+                        });
+                    }, 1500);
+
+                });
+            })
+            .catch(() => {
+                printMessage('trying next port...');
+            });
+        if (result) {
+            currentConnection = result;
+            arduinoMain();
+            return;
+        }
+    }
+    printMessage('all ports checked\nno connection established');
+    (function retryPrompt() {
+        rl.question("would you like to try again (yes/no) [yes] ", (input) => {
+            if (input == '' || input == 'yes') connectArduino();
+            else if (input == 'no') startup();
+            else {
+                printMessage('error: invalid input');
+                retryPrompt();
+            }
+        });
+    })();
 }
 
-async function sendToMachine(command, connection) {
+async function sendToMachine(command) {
     return new Promise((resolve, reject) => {
         if (manualMode) {
             printMessage(command);
@@ -139,7 +138,7 @@ async function sendToMachine(command, connection) {
                 else if (input == 'e') reject('opearationFailed');
             });
         } else {
-            onData = (data) => {
+            onSerialPortData = (data) => {
                 var buffer = Buffer.from(data);
                 for (let i = 0; i < buffer.length; i++) {
                     let chr = buffer[i];
@@ -154,12 +153,12 @@ async function sendToMachine(command, connection) {
                     }
                 }
             };
-            connection.write(command);
+            currentConnection.write(command);
         }
     });
 }
 
-async function handleOperation(operation, connection) {
+async function executeOperation(operation) {
     return new Promise((resolve, reject) => {
         isOperationRunning = true;
         printMessage('starting ' + operation.type + ' operation from ' + operation.address + ' to ' + operation.destination);
@@ -171,17 +170,11 @@ async function handleOperation(operation, connection) {
                 type: operation.type
             }
         }, (error, result, body) => {
-            if (error) {
-                printMessage(error);
-            } else if (body.error.length) {
-                printMessage(body.error);
-            }
+            if (error || body.error.length) reject((error) ? error : body.error);
         });
-        sendToMachine('m ' + Math.floor(operation.address / 1000) + ' ' + operation.address % 100 + ' ' + Math.floor(operation.destination / 1000) + ' ' + operation.destination % 100, connection)
+        sendToMachine('m ' + Math.floor(operation.address / 1000) + ' ' + operation.address % 100 + ' ' + Math.floor(operation.destination / 1000) + ' ' + operation.destination % 100)
             .then(() => {
                 printMessage('operation complete');
-                //console.log(operation);
-
                 request(mainServerAddress + '/warehouse/operation_event', {
                     secret: connectionSecret,
                     operation: {
@@ -190,16 +183,11 @@ async function handleOperation(operation, connection) {
                         type: operation.type
                     }
                 }, (error, result, body) => {
-                    if (error) {
-                        printMessage(error);
-                    } else if (body.error.length) {
-                        printMessage(body.error);
-                    }
+                    if (error || body.error.length) reject((error) ? error : body.error);
+                    else resolve();
                 });
-                resolve();
             })
             .catch((err) => {
-                printMessage('error: ' + err);
                 request(mainServerAddress + '/warehouse/operation_event', {
                     secret: connectionSecret,
                     operation: {
@@ -208,104 +196,80 @@ async function handleOperation(operation, connection) {
                         type: operation.type
                     }
                 }, (error, result, body) => {
-                    if (error) {
-                        printMessage(error);
-                    } else if (body.error.length) {
-                        printMessage(body.error);
-                    }
+                    if (error || body.error.length) reject(err + (error) ? error : body.error);
+                    else reject(err);
                 });
-                reject();
             });
     });
 }
 
-function startOperation(connection) {
+function receivedCode(code) {
+    awaitingCode=false;
     var check = false;
-    rl.question('enter code: ', (code) => {
-        operationsList.forEach(element => {
-            if (element.code == code) {
-                check = true;
-                handleOperation(element, connection)
-                    .then(() => {
-                        startOperation(connection);
-                    }).catch(() => {
-                        startOperation(connection);
-                    });
-            }
-        });
-        if (!check) {
-            printMessage('error: invalid code');
-            startOperation(connection);
+    operationsList.forEach(async element => {
+        if (element.code == code) {
+            check = true;
+            executeOperation(element)
+                .then(() => {
+                    startOperationDialogue();
+                }).catch((error) => {
+                    printMessage(error);
+                    startOperationDialogue();
+                });
         }
+    });
+    if (!check) {
+        printMessage('error: invalid code');
+        setTimeout(() => {
+            startOperationDialogue();
+        }, 1000);
+    }
+}
+
+function startOperationDialogue() {
+    awaitingCode=true;
+    rl.question('scan QR code or enter code: ', (input) => {
+        receivedCode(input);
     });
 }
 
-function arduinoMain(connection) {
-    console.log("connection established on port: " + connection.path);
-
-    var check2 = false;
+function arduinoMain() {
+    manualMode = false;
     new Promise((resolve, reject) => {
-            onData = (data) => {
+            onSerialPortData = (data) => {
                 printMessage('recieved data:\n' + data);
-                onData = (data) => {
-                    var buffer = Buffer.from(data);
-                    for (let i = 0; i < buffer.length; i++) {
-                        let chr = buffer[i];
-                        if (chr <= 32) continue;
-                        if (chr == 'r'.charCodeAt(0)) {
-                            resolve();
-                            break;
-                        }
-                        if (chr == 'e'.charCodeAt(0)) {
-                            reject('opearationFailed');
-                            break;
-                        }
+                var buffer = Buffer.from(data);
+                for (let i = 0; i < buffer.length; i++) {
+                    let chr = buffer[i];
+                    if (chr <= 32) continue;
+                    if (chr == 'r'.charCodeAt(0)) {
+                        resolve();
+                        break;
                     }
-                };
+                    if (chr == 'e'.charCodeAt(0)) {
+                        reject('opearationFailed');
+                        break;
+                    }
+                }
             };
-            connection.write('r');
+            currentConnection.write('r');
         })
         .then(() => {
-            setInterval(async () => {
-                try {
-                    operationsList = await loadOperations();
-                    if (check1) {
-                        printMessage('enter code: ');
-                        check1 = false;
-                    }
-                } catch (err) {
-                    printMessage('server unreachable ...');
-                    check = true;
-                }
-            }, 1000);
-
-            startOperation(connection);
-        });
+            startOperationDialogue();
+        })
+        .catch(printMessage);
 }
+
 async function manual() {
-    manualMode=true;
-    var check1 = false;
-    setInterval(async () => {
-        try {
-            operationsList = await loadOperations();
-            if (check1) {
-                printMessage('enter code: ');
-                check1 = false;
-            }
-        } catch (err) {
-            console.log(err);
-            
-            printMessage('server unreachable ...');
-            check1 = true;
-        }
-    }, 1000);
-    startOperation();
+    manualMode = true;
+    startOperationDialogue(null);
 }
 
 function startup() {
     rl.question('server address: [https://server.autostorage.online] ', (address) => {
-        if(address != '') mainServerAddress = address;
+        if (address != '') mainServerAddress = address;
         rl.question('mode (manual/auto): [auto] ', (input) => {
+            setInterval(updateOperations, 1000);
             if (input == 'manual') manual();
             else if (input == 'auto' || input == '') connectArduino();
             else {
