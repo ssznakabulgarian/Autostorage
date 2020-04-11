@@ -1,8 +1,8 @@
 window.onRedirect = [];
-window.curentPage = "";
+window.currentPage = "";
 
 function fireRedirect() {
-    if (window.curentPage != "dashboard.html" && cardsUpdateInterval) clearInterval(cardsUpdateInterval);
+    if (window.currentPage != "dashboard.html" && cardsUpdateInterval) clearInterval(cardsUpdateInterval);
     if (window.currentPage != "login.html" && window.currentPage != "register.html" && window.currentPage != "forgot-password.html" && !localStorage.getItem('token')) redirect('login.html');
     setUtilityVars();
     window.onRedirect.forEach(eventListener => {
@@ -11,6 +11,7 @@ function fireRedirect() {
 }
 
 function redirect(page) {
+    if(page==window.currentPage) return;
     request('/redirect', null, {
         page: page
     }, function (success, result, errors, e) {
@@ -18,7 +19,8 @@ function redirect(page) {
         else {
             result = result.substring(result.indexOf('<body'), result.indexOf('<script'));
             document.body.innerHTML = result;
-            document.body.id="page-top";
+            if(page == "login.html" || page == "register.html" || page == "forgot_password.html") document.body.classList.add("bg-gradient-info");
+            else document.body.id="page-top";
             window.currentPage = page;
             fireRedirect();
         }
@@ -205,6 +207,8 @@ var importCard,
     profileUpdateSubmitButton,
     profileUpdateFileUploadLabel,
     profileUpdateThumbnail,
+    resetPasswordEmailInput,
+    resetPasswordButton,
     cardsUpdateInterval,
     storageUnitPrice = 2.4916,
     vatRate = 20,
@@ -265,9 +269,11 @@ function setUtilityVars() {
         operationsTableRowTemplate = operationsTableRow.cloneNode(true);
         operationsTableRow.parentElement.removeChild(operationsTableRow);
     }
-    // ------ login/register ------
+    // ------ login/register/reset ------
     loginButton = document.getElementById("login-button");
     registerButton = document.getElementById("register-button");
+    resetPasswordButton = document.getElementById("reset-password-button");
+    resetPasswordEmailInput = document.getElementById("reset-password-email");
     // ------ profile update ------
     profileUpdateFileUpload = document.getElementById('profile-update-file-upload');
     profileUpdateFirstNameInput = document.getElementById('profile-update-first-name-input');

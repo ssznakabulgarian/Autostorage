@@ -87,7 +87,8 @@ router.post('/register', async function (req, res) {
   }
 
   res.json(result);
-})
+});
+
 router.post('/login', async function (req, res) {
   var result = {
     error: [],
@@ -106,7 +107,16 @@ router.post('/login', async function (req, res) {
     if (row) {
       if ((await database.one("SELECT has_too_many_failed_logins($(id))", row)).has_too_many_failed_logins) {
         result.error.push("tooManyFailedLogins");
-        //send reset password email
+        var tmpPassword = randomstring.generate(10);
+        mailer.generateEmail({
+          name: row.first_name + " " + row.last_name,
+          newPassword: tmpPassword
+        }, (html, plaintext) => {
+          mailer.sendEmail('account password reset', row.email, html, plaintext);
+        });
+        await database.none("UPDATE users SET password=$(password)", {
+          password: encryptor.cryptPassword(tmpPassword)
+        });
       } else {
         if (encryptor.comparePassword(req.body.password, row.password)) {
           var token = randomstring.generate(64);
@@ -133,7 +143,7 @@ router.post('/login', async function (req, res) {
     }
   }
   res.json(result);
-})
+});
 
 router.post('/logout', async function (req, res) {
   var result = {
@@ -189,7 +199,7 @@ router.post('/read', async function (req, res) {
     }
   }
   res.json(result);
-})
+});
 
 router.post('/update', async function (req, res) {
   var result = {
@@ -276,6 +286,37 @@ router.post('/purchase', async function (req, res) {
           amount: req.body.amount
         }
       }
+    }
+  }
+  res.json(result);
+});
+
+router.post('/forgot_password', async function (req, res) {
+  var result = {
+    error: [],
+    data: {}
+  };
+
+  if (!isRequestValid(req)) result.error.push("invalidRequest");
+  if (!isEmailValid(req.body.email)) result.error.push("invalidEmail");
+
+  if (result.error.length == 0) {
+    var row = await database.oneOrNone("SELECT all FROM users WHERE email=$(email)", req.body);
+    if (!row) result.error.push("emailNotRecognised");
+    else {
+      var tmpPassword = randomstring.generate(10);
+      mailer.generateEmail({
+        username: row.username,
+        name: row.first_name + " " + row.last_name,
+        newPassword: tmpPassword,
+        ipAddress: req.socket.remoteAddress,
+        time: Date.now()
+      }, (html, plaintext) => {
+        mailer.sendEmail('account password reset', row.email, html, plaintext);
+      });
+      await database.none("UPDATE users SET password=$(password)", {
+        password: encryptor.cryptPassword(tmpPassword)
+      });
     }
   }
   res.json(result);
