@@ -47,6 +47,14 @@ window.onRedirect.push(function () {
     profileUpdateUsernameInput.onchange = profileUpdateUsernameInput.onkeyup = (e) => {
         updates.username = profileUpdateUsernameInput.value;
     };
+    profileUpdatePasswordInput.onchange = profileUpdatePasswordInput.onkeyup = profileUpdateRepeatPasswordInput.onchange = profileUpdateRepeatPasswordInput.onkeyup = (e) => {
+        if (profileUpdatePasswordInput.value != profileUpdateRepeatPasswordInput.value) {
+            profileUpdatePasswordWarning.classList.remove('invisible');
+        } else {
+            updates.password = profileUpdatePasswordInput.value;
+            profileUpdatePasswordWarning.classList.add('invisible');
+        }
+    };
     profileUpdateEmailInput.onchange = profileUpdateEmailInput.onkeyup = (e) => {
         updates.email = profileUpdateEmailInput.value;
     };
@@ -60,7 +68,7 @@ window.onRedirect.push(function () {
             if (!success) handleErrors(error);
             else {
                 console.log(result);
-                redirect('profile.html');
+                redirect('dashboard.html');
             }
         });
     }

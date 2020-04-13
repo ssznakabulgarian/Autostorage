@@ -107,15 +107,18 @@ router.post('/login', async function (req, res) {
     if (row) {
       if ((await database.one("SELECT has_too_many_failed_logins($(id))", row)).has_too_many_failed_logins) {
         result.error.push("tooManyFailedLogins");
-        var tmpPassword = randomstring.generate(10);
+        row.tmpPassword = randomstring.generate(10);
         mailer.generateEmail({
+          username: row.username,
           name: row.first_name + " " + row.last_name,
-          newPassword: tmpPassword
-        }, (html, plaintext) => {
+          newPassword: row.tmpPassword,
+          ipAddress: req.socket.remoteAddress,
+          time: Date(Date.now()).toLocaleString()
+        }, async (html, plaintext) => {
           mailer.sendEmail('account password reset', row.email, html, plaintext);
-        });
-        await database.none("UPDATE users SET password=$(password)", {
-          password: encryptor.cryptPassword(tmpPassword)
+          row.tmpPassword=encryptor.cryptPassword(row.tmpPassword);
+          await database.none("UPDATE users SET password=$(tmpPassword) WHERE id=$(id)", row);
+          await database.one("SELECT reset_failed_logins($(id));", row);
         });
       } else {
         if (encryptor.comparePassword(req.body.password, row.password)) {
@@ -301,21 +304,20 @@ router.post('/forgot_password', async function (req, res) {
   if (!isEmailValid(req.body.email)) result.error.push("invalidEmail");
 
   if (result.error.length == 0) {
-    var row = await database.oneOrNone("SELECT all FROM users WHERE email=$(email)", req.body);
+    var row = await database.oneOrNone("SELECT * FROM users WHERE email=$(email)", req.body);
     if (!row) result.error.push("emailNotRecognised");
     else {
-      var tmpPassword = randomstring.generate(10);
+      row.tmpPassword = randomstring.generate(10);
       mailer.generateEmail({
         username: row.username,
         name: row.first_name + " " + row.last_name,
-        newPassword: tmpPassword,
+        newPassword: row.tmpPassword,
         ipAddress: req.socket.remoteAddress,
-        time: Date.now()
-      }, (html, plaintext) => {
+        time: Date(Date.now()).toLocaleString()
+      }, async (html, plaintext) => {
         mailer.sendEmail('account password reset', row.email, html, plaintext);
-      });
-      await database.none("UPDATE users SET password=$(password)", {
-        password: encryptor.cryptPassword(tmpPassword)
+        row.tmpPassword=encryptor.cryptPassword(row.tmpPassword);
+        await database.none("UPDATE users SET password=$(tmpPassword) WHERE id=$(id)", row);
       });
     }
   }

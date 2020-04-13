@@ -1,11 +1,13 @@
 var nodemailer = require('nodemailer');
+var fs = require('fs');
+var HTMLparser = require('node-html-parser');
 var serverEmailUser = {
     user: 'mailer@autostorage.online',
     pass: '48N.GN)0GoK#'
 };
 
 module.exports.sendEmail = function (subject, emails, html, content) {
-    return new Promise((resolve, reject)=>{
+    return new Promise((resolve, reject) => {
         var transporter = nodemailer.createTransport({
             host: "mail.autostorage.online",
             port: 26,
@@ -28,11 +30,18 @@ module.exports.sendEmail = function (subject, emails, html, content) {
         });
     });
 }
-module.exports.generateEmail = function(data, callback /**/){
-    var html, plaintext;
-    //do smth with html using data
-    var tag = document.createElement('div');
-    tag.innerHTML = html;
-    plaintext = tag.innerText;
-    callback(html, plaintext);
+module.exports.generateEmail = function (data, callback /**/ ) {
+    fs.readFile("./public/email.html", (error, html) => {
+        if (error) throw error;
+        else {
+            html = HTMLparser.parse(html);
+            console.log(data);
+            html.querySelector('#name-field').set_content('Hello, '+data.name+', ');
+            html.querySelector('#username-field').set_content('username: '+data.username);
+            html.querySelector('#new-password-field').set_content('new password: '+data.newPassword);
+            html.querySelector('#ip-address-field').set_content('IP address: '+data.ipAddress);
+            html.querySelector('#time-field').set_content('time: '+data.time);
+            callback(html.toString(), html.querySelector("#body").text);
+        }
+    });
 }

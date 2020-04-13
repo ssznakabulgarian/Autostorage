@@ -204,6 +204,9 @@ var importCard,
     profileUpdateEmailInput,
     profileUpdateUsernameInput,
     profileUpdateAddressInput,
+    profileUpdatePasswordWarning,
+    profileUpdatePasswordInput,
+    profileUpdateRepeatPasswordInput,
     profileUpdateSubmitButton,
     profileUpdateFileUploadLabel,
     profileUpdateThumbnail,
@@ -280,6 +283,9 @@ function setUtilityVars() {
     profileUpdateLastNameInput = document.getElementById('profile-update-last-name-input');
     profileUpdateEmailInput = document.getElementById('profile-update-email-input');
     profileUpdateUsernameInput = document.getElementById('profile-update-username-input');
+    profileUpdatePasswordWarning = document.getElementById('profile-update-password-match-warning');
+    profileUpdatePasswordInput = document.getElementById('profile-update-password-input');
+    profileUpdateRepeatPasswordInput = document.getElementById('profile-update-repeat-password-input');
     profileUpdateAddressInput = document.getElementById('profile-update-address-input');
     profileUpdateSubmitButton = document.getElementById('profile-update-submit-button');
     profileUpdateFileUploadLabel = document.getElementById('profile-update-file-upload-label');
