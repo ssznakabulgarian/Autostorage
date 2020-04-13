@@ -25,11 +25,8 @@ QRreadWorker.on('error', printMessage);
 QRreadWorker.on('exit', printMessage);
 QRreadWorker.on('message', (message) => {
     if (!awaitingCode) return;
-    process.stdout.write(message + '\n');
+    process.stdin.write(message+'\n');
     awaitingCode=false;
-    setTimeout(() => {
-        receivedCode(message);
-    }, 500);
 });
 
 function printMessage(message) {
