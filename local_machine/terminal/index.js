@@ -24,9 +24,12 @@ var QRreadWorker = new Worker("./QRdecoderWorker.js");
 QRreadWorker.on('error', printMessage);
 QRreadWorker.on('exit', printMessage);
 QRreadWorker.on('message', (message) => {
-    if(!awaitingCode) return;
+    if (!awaitingCode) return;
     process.stdout.write(message + '\n');
-    receivedCode(message);
+    awaitingCode=false;
+    setTimeout(() => {
+        receivedCode(message);
+    }, 500);
 });
 
 function printMessage(message) {
@@ -132,11 +135,17 @@ async function connectArduino() {
 async function sendToMachine(command) {
     return new Promise((resolve, reject) => {
         if (manualMode) {
-            printMessage(command);
-            rl.question('> ', (input) => {
-                if (input == 'r') resolve();
-                else if (input == 'e') reject('opearationFailed');
-            });
+            (function prompt() {
+                printMessage(command);
+                rl.question('> ', (input) => {
+                    if (input == 'r') resolve();
+                    else if (input == 'e') reject('opearationFailed');
+                    else {
+                        printMessage("invalid input");
+                        prompt();
+                    }
+                });
+            })();
         } else {
             onSerialPortData = (data) => {
                 var buffer = Buffer.from(data);
@@ -204,7 +213,7 @@ async function executeOperation(operation) {
 }
 
 function receivedCode(code) {
-    awaitingCode=false;
+    awaitingCode = false;
     var check = false;
     operationsList.forEach(async element => {
         if (element.code == code) {
@@ -227,7 +236,7 @@ function receivedCode(code) {
 }
 
 function startOperationDialogue() {
-    awaitingCode=true;
+    awaitingCode = true;
     rl.question('scan QR code or enter code: ', (input) => {
         receivedCode(input);
     });
