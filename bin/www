@@ -17,8 +17,8 @@ try {
     });
     res.end();
   }
-  const server = http.createServer(requestListener);
-  server.listen(80);
+  const HTTPserver = http.createServer(requestListener);
+  HTTPserver.listen(80);
   
   /**
    * Get port from environment and store in Express.
