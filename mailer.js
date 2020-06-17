@@ -6,7 +6,7 @@ var serverEmailUser = {
     pass: '48N.GN)0GoK#'
 };
 
-module.exports.sendEmail = function (subject, emails, html, content) {
+module.exports.sendEmail = function (subject, recipients, html, content) {
     return new Promise((resolve, reject) => {
         var transporter = nodemailer.createTransport({
             host: "mail.autostorage.online",
@@ -20,7 +20,7 @@ module.exports.sendEmail = function (subject, emails, html, content) {
 
         transporter.sendMail({
             from: 'Autostorage <mailer@autostorage.online>',
-            to: emails,
+            to: recipients,
             subject: subject,
             text: content,
             html: html
