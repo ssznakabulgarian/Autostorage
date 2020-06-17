@@ -11,12 +11,12 @@
     "ddos": "^0.2.1",
     "debug": "~2.6.9",
     "express": "~4.16.1",
-    "helmet": "^3.22.0",
+    "helmet": "^3.23.1",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
-    "node-html-parser": "^1.2.15",
-    "nodemailer": "^6.4.6",
-    "pg-promise": "^10.5.0",
+    "node-html-parser": "^1.2.19",
+    "nodemailer": "^6.4.10",
+    "pg-promise": "^10.5.6",
     "randomstring": "^1.1.5",
     "request": "^2.88.2"
   }
