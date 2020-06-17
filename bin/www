@@ -4,11 +4,22 @@
  * Module dependencies.
  */
 try {
+  const http = require('http');
   var app = require('../app');
   var debug = require('debug')('project:server');
   var https = require('https');
   var fs = require('fs');
 
+  //
+  const requestListener = function (req, res) {
+    res.writeHead(302, {
+        'Location': 'https://' + req.headers.host + req.url
+    });
+    res.end();
+  }
+  const server = http.createServer(requestListener);
+  server.listen(80);
+  
   /**
    * Get port from environment and store in Express.
    */
