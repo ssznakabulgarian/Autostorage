@@ -8,7 +8,7 @@ var connectionResponseString = "c",
     currentConnection = null,
     onSerialPortData = function () {},
     awaitingCommand = false,
-    mainServerAddress = 'https://server.autostorage.online',
+    mainServerAddress = 'https://autostorage.online',
     connectionSecret = '_9e8a7s4y1s2t3o6r5e_',
     operationsList = [],
     isOperationRunning = false,
@@ -53,6 +53,7 @@ async function updateOperations() {
         operationsList = await loadOperations();
     } catch (err) {
         printMessage('server unreachable ...');
+        printMessage(err);
     }
 }
 
@@ -272,7 +273,7 @@ async function manual() {
 }
 
 function startup() {
-    rl.question('server address: [https://server.autostorage.online] ', (address) => {
+    rl.question('server address: ['+mainServerAddress+'] ', (address) => {
         if (address != '') mainServerAddress = address;
         rl.question('mode (manual/auto): [auto] ', (input) => {
             setInterval(updateOperations, 1000);

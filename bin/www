@@ -33,7 +33,8 @@ try {
 
   var server = https.createServer({
     key: fs.readFileSync('./key.txt'),
-    cert: fs.readFileSync('./cert.txt')
+    cert: fs.readFileSync('./cert.txt'),
+    ca: fs.readFile('./bundle.txt')
   }, app);
 
   /**
