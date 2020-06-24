@@ -369,21 +369,38 @@ function openImportDialogue(item) {
     if (isExportDialogueOpen) closeExportDialogue();
     if (isImportDialogueOpen) closeImportDialogue();
     if (isMaintenanceDialogueOpen) closeMaintenanceDialogue();
-    var selectedCardAddress = item.id;
-    var tmp = importCardTemplate.cloneNode(true);
     isImportDialogueOpen = true;
-    var operationCode = null;
-    var useQRCodeButton = tmp.querySelector('#import-use-QR-code');
-    var useNumberCodeButton = tmp.querySelector('#import-use-number-code');
-    var printQRcodeIframe = tmp.querySelector('#import-QR-code-print-iframe');
-    var printQRcodeSizeInput = tmp.querySelector('#import-QR-code-print-size-input');
-    var printQRcodeButton = tmp.querySelector("#import-print-QR-code-button");
-    var QRCodeInputBody = tmp.querySelector('#import-QR-code-input-body');
-    var printQRcodeBody = tmp.querySelector('#import-print-QR-code-body');
-    var numberCodeInput = tmp.querySelector('#import-number-code-input');
     QRCodeVideo = tmp.querySelector('#import-card-video');
-    var QRCodeCanvas = tmp.querySelector('#import-card-canvas');
+    var selectedCardAddress = item.id,
+        tmp = importCardTemplate.cloneNode(true),
+        operationCode = null,
+        useQRCodeButton = tmp.querySelector('#import-use-QR-code'),
+        useNumberCodeButton = tmp.querySelector('#import-use-number-code'),
+        printQRcodeIframe = tmp.querySelector('#import-QR-code-print-iframe'),
+        printQRcodeSizeInput = tmp.querySelector('#import-QR-code-print-size-input'),
+        printQRcodeButton = tmp.querySelector("#import-print-QR-code-button"),
+        QRCodeInputBody = tmp.querySelector('#import-QR-code-input-body'),
+        printQRcodeBody = tmp.querySelector('#import-print-QR-code-body'),
+        numberCodeInput = tmp.querySelector('#import-number-code-input'),
+        QRCodeCanvas = tmp.querySelector('#import-card-canvas');
+
+    function updatePrintPreview() {
+        printQRcodeIframe.src = "https://api.qrserver.com/v1/create-qr-code/?size=" + printQRcodeSizeInput.value + "x" + printQRcodeSizeInput.value + "&data=" + numberCodeInput.value;
+    }
     numberCodeInput.value = operationCode = Math.round(Math.random() * 8999999) + 1000000;
+    numberCodeInput.addEventListener('keyup', () => {
+        updatePrintPreview();
+    });
+    numberCodeInput.addEventListener('mouseup', () => {
+        updatePrintPreview();
+    });
+    printQRcodeSizeInput.addEventListener('keyup', () => {
+        updatePrintPreview();
+    });
+    printQRcodeSizeInput.addEventListener('mouseup', () => {
+        updatePrintPreview();
+    });
+
     useQRCodeButton.onclick = function () {
         document.getElementById("import-use-number-code-radio-input").removeAttribute('checked');
         document.getElementById("import-use-QR-code-radio-input").setAttribute('checked', '');
@@ -393,14 +410,7 @@ function openImportDialogue(item) {
         var ctx = QRCodeCanvas.getContext('2d');
         var decoder = new Worker('assets/js/decoder.js');
 
-        function updatePrintPreview() {
-            printQRcodeIframe.src = "https://api.qrserver.com/v1/create-qr-code/?size=" + printQRcodeSizeInput.value + "x" + printQRcodeSizeInput.value + "&data=" + numberCodeInput.value;
-        }
 
-        numberCodeInput.addEventListener('keyup', ()=>{updatePrintPreview();});
-        numberCodeInput.addEventListener('mouseup', ()=>{updatePrintPreview();});
-        printQRcodeSizeInput.addEventListener('keyup', ()=>{updatePrintPreview();});
-        printQRcodeSizeInput.addEventListener('mouseup', ()=>{updatePrintPreview();});
 
         printQRcodeButton.onclick = () => {
             printQRcodeIframe.contentWindow.print();
@@ -510,6 +520,7 @@ function openImportDialogue(item) {
     }
     numberCodeInput.onclick = numberCodeInput.onkeyup = () => {
         operationCode = numberCodeInput.value;
+        updatePrintPreview();
     }
     dashboardMainContainer.appendChild(tmp);
     document.getElementById('import-submit-button').addEventListener('click', (e) => {
