@@ -193,14 +193,22 @@
                                         style="width: 100%;">
                                         <div id="import-code-switch" class="toggle mb-1"><input type="radio" id="import-use-QR-code-radio-input"><label id="import-use-QR-code">QR code</label><input type="radio" id="import-use-number-code-radio-input" checked=""><label id="import-use-number-code">number</label></div>
                                         <div
-                                            id="import-number-code-input-body" class="mb-2" style="width: 15rem;max-width: 100%;"><label><strong>Code</strong><br></label><input class="form-control" type="number" id="import-number-code-input"></div>
-                                    <div id="import-QR-code-input-body" style="display: none;">
-                                        <div class="form-row">
-                                            <div class="col"><video id="import-card-video" style="max-width: 100%;" autoplay></video>
+                                            class="form-row">
+                                            <div class="col">
+                                                <div id="import-QR-code-input-body" style="display: none;">
+                                                    <div class="form-row">
+                                                        <div class="col"><video id="import-card-video" style="max-width: 100%;" autoplay></video>
 <canvas id="import-card-canvas" style="display: none;"></canvas></div>
-                                            <div class="col"><iframe id="import-qr-code-print-iframe" width="20%" height="20%"></iframe>
+                                                        <div class="col"><iframe id="import-qr-code-print-iframe" width="100%" height="100%"></iframe>
 <input class="form-control mt-2" id="import-qr-code-print-size-input" type="number" min="1" max="2000" value="150"></input>
 <button class="btn btn-secondary btn-sm mt-2" id="import-print-qr-code-button">Print</button></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="col">
+                                            <div id="import-number-code-input-body" class="mb-2" style="width: 15rem;max-width: 100%;"><label><strong>Code</strong><br></label><input class="form-control" type="number" id="import-number-code-input"></div>
                                         </div>
                                     </div>
                             </div>
