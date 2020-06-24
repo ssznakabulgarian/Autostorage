@@ -397,10 +397,8 @@ function openImportDialogue(item) {
             printQRcodeIframe.src = "https://api.qrserver.com/v1/create-qr-code/?size=" + printQRcodeSizeInput.value + "x" + printQRcodeSizeInput.value + "&data=" + numberCodeInput.value;
         }
 
-        numberCodeInput.addEventListener('change', ()=>{updatePrintPreview();});
         numberCodeInput.addEventListener('keyup', ()=>{updatePrintPreview();});
         numberCodeInput.addEventListener('mouseup', ()=>{updatePrintPreview();});
-        printQRcodeSizeInput.addEventListener('change', ()=>{updatePrintPreview();});
         printQRcodeSizeInput.addEventListener('keyup', ()=>{updatePrintPreview();});
         printQRcodeSizeInput.addEventListener('mouseup', ()=>{updatePrintPreview();});
 
