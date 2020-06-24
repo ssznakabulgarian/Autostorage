@@ -475,11 +475,10 @@ function openImportDialogue(item) {
             });
 
         var decoder = new Worker('assets/js/decoder.js');
-        decoder.onmessage = function onDecoderMessage(event) {
-            if (event.data.length > 0) {
-                var qrid = event.data[0][2];
-                foundCode(qrid);
-            }
+        decoder.onmessage = (e)=>{
+            console.log(e);
+            
+            if (e.data.length > 0) foundCode(e.data[0][2]);
             setTimeout(decodeFrame, 0);
         }
 
@@ -504,6 +503,7 @@ function openImportDialogue(item) {
         document.getElementById("import-use-QR-code-radio-input").removeAttribute('checked');
         QRCodeInputBody.style = 'display: none;';
         numberCodeInputBody.style = 'display: inline-block;';
+        delete decoder;
         if (QRCodeVideo) QRCodeVideo.srcObject.getTracks().forEach((track) => {
             track.stop();
         });
