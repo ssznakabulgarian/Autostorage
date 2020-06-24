@@ -389,29 +389,29 @@ function openImportDialogue(item) {
         document.getElementById("import-use-QR-code-radio-input").setAttribute('checked', '');
         QRCodeInputBody.style = 'display: inline-block';
         //numberCodeInputBody.style = 'display: none;';
-        
+
         var ctx = QRCodeCanvas.getContext('2d');
         var decoder = new Worker('assets/js/decoder.js');
 
-        function updatePrintPreview(){
-            printQRcodeIframe.src="https://api.qrserver.com/v1/create-qr-code/?size="+printQRcodeSizeInput.value+"x"+printQRcodeSizeInput.value+"&data="+operationCode;
+        function updatePrintPreview() {
+            printQRcodeIframe.src = "https://api.qrserver.com/v1/create-qr-code/?size=" + printQRcodeSizeInput.value + "x" + printQRcodeSizeInput.value + "&data=" + operationCode;
         }
 
-        printQRcodeSizeInput.onchange = printQRcodeSizeInput.onkeyup = printQRcodeSizeInput.onmouseup = (e)=>{
+        printQRcodeSizeInput.onchange = printQRcodeSizeInput.onkeyup = printQRcodeSizeInput.onmouseup = (e) => {
             updatePrintPreview();
         }
 
-        printQRcodeButton.onclick = ()=>{
+        printQRcodeButton.onclick = () => {
             printQRcodeIframe.contentWindow.print();
         }
 
         function foundCode(code) {
             operationCode = code;
             console.log(code);
-            
+
             if (isNaN(code)) alert('Your code must contain only numbers!\ncode: ' + code);
             else {
-                numberCodeInput.value=operationCode;
+                numberCodeInput.value = operationCode;
                 updatePrintPreview();
             }
         }
@@ -475,12 +475,18 @@ function openImportDialogue(item) {
                 startCapture(constraints);
             });
 
-            
-            (function decodeFrame() {
+        decoder.onmessage = (e) => {
+            console.log(e);
+
+            if (e.data.length > 0) foundCode(e.data[0][2]);
+            setTimeout(decodeFrame, 0);
+        }
+
+        function decodeFrame() {
             try {
                 ctx.drawImage(QRCodeVideo, 0, 0, QRCodeCanvas.width, QRCodeCanvas.height);
                 var imgData = ctx.getImageData(0, 0, QRCodeCanvas.width, QRCodeCanvas.height);
-                
+
                 if (imgData.data) {
                     decoder.postMessage(imgData);
                 }
@@ -490,15 +496,9 @@ function openImportDialogue(item) {
                 // Try-Catch to circumvent Firefox Bug #879717
                 if (e.name == 'NS_ERROR_NOT_AVAILABLE') setTimeout(decodeFrame, 0);
             }
-        })();
-        
-        decoder.onmessage = (e)=>{
-            console.log(e);
-            
-            if (e.data.length > 0) foundCode(e.data[0][2]);
-            setTimeout(decodeFrame, 0);
-        }
+        };
 
+        decodeFrame();
     }
     useNumberCodeButton.onclick = function () {
         document.getElementById("import-use-number-code-radio-input").setAttribute('checked', '');
