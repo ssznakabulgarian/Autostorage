@@ -401,7 +401,10 @@ function openImportDialogue(item) {
     printQRcodeSizeInput.addEventListener('mouseup', () => {
         updatePrintPreview();
     });
-
+    printQRcodeButton.onclick = () => {
+        printQRcodeIframe.contentWindow.print();
+    }
+    
     useQRCodeButton.onclick = function () {
         document.getElementById("import-use-number-code-radio-input").removeAttribute('checked');
         document.getElementById("import-use-QR-code-radio-input").setAttribute('checked', '');
@@ -411,11 +414,6 @@ function openImportDialogue(item) {
         var ctx = QRCodeCanvas.getContext('2d');
         var decoder = new Worker('assets/js/decoder.js');
 
-
-
-        printQRcodeButton.onclick = () => {
-            printQRcodeIframe.contentWindow.print();
-        }
 
         function foundCode(code) {
             operationCode = code;
