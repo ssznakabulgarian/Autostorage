@@ -375,6 +375,9 @@ function openImportDialogue(item) {
     var operationCode = null;
     var useQRCodeButton = tmp.querySelector('#import-use-QR-code');
     var useNumberCodeButton = tmp.querySelector('#import-use-number-code');
+    var printQRcodeIframe = tmp.querySelector('#import-qr-code-print-iframe');
+    var printQRcodeSizeInput = tmp.querySelector('#import-qr-code-print-size-input');
+    var printQRcodeButton = tmp.querySelector("#import-print-qr-code-button");
     var QRCodeInputBody = tmp.querySelector('#import-QR-code-input-body');
     var numberCodeInputBody = tmp.querySelector('#import-number-code-input-body');
     var numberCodeInput = tmp.querySelector('#import-number-code-input');
@@ -389,11 +392,26 @@ function openImportDialogue(item) {
 
         var ctx = QRCodeCanvas.getContext('2d');
 
+        function updatePrintPreview(){
+            printQRcodeIframe.src="https://api.qrserver.com/v1/create-qr-code/?size="+printQRcodeSizeInput.value+"x"+printQRcodeSizeInput.value+"&data="+operationCode;
+        }
+
+        printQRcodeSizeInput.onchange = printQRcodeSizeInput.onkeyup = printQRcodeSizeInput.onmouseup = (e)=>{
+            updatePrintPreview();
+        }
+
+        printQRcodeButton.onclick = ()=>{
+            printQRcodeIframe.contentWindow.print();
+        }
+
         function foundCode(code) {
             operationCode = code;
+            console.log(code);
+            
             if (isNaN(code)) alert('Your code must contain only numbers!\ncode: ' + code);
             else {
                 numberCodeInput.value=operationCode;
+                updatePrintPreview();
             }
         }
 
@@ -452,8 +470,6 @@ function openImportDialogue(item) {
                 constraints = {
                     video: true
                 };
-                console.log(constraints);
-                console.log(device);
 
                 startCapture(constraints);
             });
