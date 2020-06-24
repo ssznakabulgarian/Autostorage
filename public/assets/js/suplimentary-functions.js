@@ -450,10 +450,13 @@ function openImportDialogue(item) {
                         constraints.video.facingMode = 'environment';
                     }
                 } else {
-                    constraints = {
-                        video: true
-                    };
+                    // constraints = {
+                    //     video: true
+                    // };
                 }
+                constraints = {
+                    video: true
+                };
                 console.log(constraints);
                 console.log(device);
                 
