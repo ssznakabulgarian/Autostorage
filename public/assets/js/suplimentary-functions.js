@@ -476,8 +476,6 @@ function openImportDialogue(item) {
             });
 
         decoder.onmessage = (e) => {
-            console.log(e);
-
             if (e.data.length > 0) foundCode(e.data[0][2]);
             setTimeout(decodeFrame, 0);
         }
