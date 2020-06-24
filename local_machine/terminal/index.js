@@ -112,7 +112,7 @@ async function connectArduino() {
                     }
                     if (data == connectionResponseString) finish(true);
                 }
-                connection.on('data', onSerialPortData);
+                connection.on('data', function(data) { onSerialPortData(data); });
                 connection.on('open', () => {
                     printMessage('opened port ' + connection.path);
                     setTimeout(() => {

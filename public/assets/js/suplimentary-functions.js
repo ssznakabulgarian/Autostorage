@@ -11,7 +11,7 @@ function fireRedirect() {
 }
 
 function redirect(page) {
-    if(page==window.currentPage) return;
+    if (page == window.currentPage) return;
     request('/redirect', null, {
         page: page
     }, function (success, result, errors, e) {
@@ -19,8 +19,8 @@ function redirect(page) {
         else {
             result = result.substring(result.indexOf('<body'), result.indexOf('<script'));
             document.body.innerHTML = result;
-            if(page == "login.html" || page == "register.html" || page == "forgot_password.html") document.body.classList.add("bg-gradient-info");
-            else document.body.id="page-top";
+            if (page == "login.html" || page == "register.html" || page == "forgot_password.html") document.body.classList.add("bg-gradient-info");
+            else document.body.id = "page-top";
             window.currentPage = page;
             fireRedirect();
         }
@@ -123,7 +123,7 @@ function handleErrors(errors) {
             case 'invlaidServerResponse':
                 break;
             case 'invalidRequest':
-                console.log('An invalid request has been sent!');
+                //console.log('An invalid request has been sent!');
                 message = 'An unexpected comunications error occured. Please reload and try again.';
                 break;
             case 'invalidUsername':
@@ -385,20 +385,15 @@ function openImportDialogue(item) {
         document.getElementById("import-use-number-code-radio-input").removeAttribute('checked');
         document.getElementById("import-use-QR-code-radio-input").setAttribute('checked', '');
         QRCodeInputBody.style = 'display: inline-block';
-        numberCodeInputBody.style = 'display: none;';
+        //numberCodeInputBody.style = 'display: none;';
 
         var ctx = QRCodeCanvas.getContext('2d');
-        var continueCheck = true;
 
         function foundCode(code) {
             operationCode = code;
             if (isNaN(code)) alert('Your code must contain only numbers!\ncode: ' + code);
             else {
-                continueCheck = false;
-                QRCodeVideo.srcObject.getTracks().forEach((track) => {
-                    track.stop();
-                });
-                alert('Code successfully detected: ' + code);
+                numberCodeInput.value=operationCode;
             }
         }
 
@@ -459,7 +454,7 @@ function openImportDialogue(item) {
                 };
                 console.log(constraints);
                 console.log(device);
-                
+
                 startCapture(constraints);
             });
 
@@ -469,11 +464,10 @@ function openImportDialogue(item) {
                 var qrid = event.data[0][2];
                 foundCode(qrid);
             }
-            if (continueCheck) setTimeout(decodeFrame, 0);
+            setTimeout(decodeFrame, 0);
         }
 
-        function decodeFrame() {
-
+        (function decodeFrame() {
             try {
                 ctx.drawImage(QRCodeVideo, 0, 0, QRCodeCanvas.width, QRCodeCanvas.height);
                 var imgData = ctx.getImageData(0, 0, QRCodeCanvas.width, QRCodeCanvas.height);
@@ -487,8 +481,7 @@ function openImportDialogue(item) {
                 // Try-Catch to circumvent Firefox Bug #879717
                 if (e.name == 'NS_ERROR_NOT_AVAILABLE') setTimeout(decodeFrame, 0);
             }
-        }
-        decodeFrame();
+        })();
     }
     useNumberCodeButton.onclick = function () {
         document.getElementById("import-use-number-code-radio-input").setAttribute('checked', '');
@@ -507,6 +500,9 @@ function openImportDialogue(item) {
         e.preventDefault();
         if (!operationCode) alert('You must enter a number code or scan a QR code.');
         else {
+            QRCodeVideo.srcObject.getTracks().forEach((track) => {
+                track.stop();
+            });
             request('/warehouse/import', null, {
                 token: localStorage.getItem('token'),
                 item: {
