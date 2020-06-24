@@ -401,7 +401,9 @@ function openImportDialogue(item) {
     printQRcodeSizeInput.addEventListener('mouseup', () => {
         updatePrintPreview();
     });
-    printQRcodeButton.onclick = () => {
+    printQRcodeButton.onclick = (e) => {
+        e.preventDefault();
+        printQRcodeIframe.focus();
         printQRcodeIframe.contentWindow.print();
     }
     
