@@ -379,7 +379,7 @@ function openImportDialogue(item) {
     var printQRcodeSizeInput = tmp.querySelector('#import-qr-code-print-size-input');
     var printQRcodeButton = tmp.querySelector("#import-print-qr-code-button");
     var QRCodeInputBody = tmp.querySelector('#import-QR-code-input-body');
-    var numberCodeInputBody = tmp.querySelector('#import-number-code-input-body');
+    var printQRcodeBody = tmp.querySelector('#import-print-qr-code-body');
     var numberCodeInput = tmp.querySelector('#import-number-code-input');
     QRCodeVideo = tmp.querySelector('#import-card-video');
     var QRCodeCanvas = tmp.querySelector('#import-card-canvas');
@@ -388,7 +388,7 @@ function openImportDialogue(item) {
         document.getElementById("import-use-number-code-radio-input").removeAttribute('checked');
         document.getElementById("import-use-QR-code-radio-input").setAttribute('checked', '');
         QRCodeInputBody.style = 'display: inline-block';
-        //numberCodeInputBody.style = 'display: none;';
+        printQRcodeBody.style = 'display: none';
 
         var ctx = QRCodeCanvas.getContext('2d');
         var decoder = new Worker('assets/js/decoder.js');
@@ -501,8 +501,8 @@ function openImportDialogue(item) {
     useNumberCodeButton.onclick = function () {
         document.getElementById("import-use-number-code-radio-input").setAttribute('checked', '');
         document.getElementById("import-use-QR-code-radio-input").removeAttribute('checked');
-        QRCodeInputBody.style = 'display: none;';
-        numberCodeInputBody.style = 'display: inline-block;';
+        printQRcodeBody.style = 'display: inline-block';
+        QRCodeInputBody.style = 'display: none';
         if (QRCodeVideo) QRCodeVideo.srcObject.getTracks().forEach((track) => {
             track.stop();
         });
