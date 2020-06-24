@@ -397,7 +397,7 @@ function openImportDialogue(item) {
             printQRcodeIframe.src = "https://api.qrserver.com/v1/create-qr-code/?size=" + printQRcodeSizeInput.value + "x" + printQRcodeSizeInput.value + "&data=" + operationCode;
         }
 
-        printQRcodeSizeInput.onchange = printQRcodeSizeInput.onkeyup = printQRcodeSizeInput.onmouseup = (e) => {
+        printQRcodeSizeInput.onchange = printQRcodeSizeInput.onkeyup = (e) => {
             updatePrintPreview();
         }
 
