@@ -394,10 +394,10 @@ function openImportDialogue(item) {
         var decoder = new Worker('assets/js/decoder.js');
 
         function updatePrintPreview() {
-            printQRcodeIframe.src = "https://api.qrserver.com/v1/create-qr-code/?size=" + printQRcodeSizeInput.value + "x" + printQRcodeSizeInput.value + "&data=" + operationCode;
+            printQRcodeIframe.src = "https://api.qrserver.com/v1/create-qr-code/?size=" + printQRcodeSizeInput.value + "x" + printQRcodeSizeInput.value + "&data=" + numberCodeInput.value;
         }
-
-        printQRcodeSizeInput.onchange = printQRcodeSizeInput.onkeyup = (e) => {
+        
+        numberCodeInput.onchange = printQRcodeSizeInput.onkeyup = printQRcodeSizeInput.onchange = printQRcodeSizeInput.onkeyup = (e) => {
             updatePrintPreview();
         }
 
