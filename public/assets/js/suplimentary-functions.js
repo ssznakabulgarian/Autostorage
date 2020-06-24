@@ -375,11 +375,11 @@ function openImportDialogue(item) {
     var operationCode = null;
     var useQRCodeButton = tmp.querySelector('#import-use-QR-code');
     var useNumberCodeButton = tmp.querySelector('#import-use-number-code');
-    var printQRcodeIframe = tmp.querySelector('#import-qr-code-print-iframe');
-    var printQRcodeSizeInput = tmp.querySelector('#import-qr-code-print-size-input');
-    var printQRcodeButton = tmp.querySelector("#import-print-qr-code-button");
+    var printQRcodeIframe = tmp.querySelector('#import-QR-code-print-iframe');
+    var printQRcodeSizeInput = tmp.querySelector('#import-QR-code-print-size-input');
+    var printQRcodeButton = tmp.querySelector("#import-print-QR-code-button");
     var QRCodeInputBody = tmp.querySelector('#import-QR-code-input-body');
-    var printQRcodeBody = tmp.querySelector('#import-print-qr-code-body');
+    var printQRcodeBody = tmp.querySelector('#import-print-QR-code-body');
     var numberCodeInput = tmp.querySelector('#import-number-code-input');
     QRCodeVideo = tmp.querySelector('#import-card-video');
     var QRCodeCanvas = tmp.querySelector('#import-card-canvas');
