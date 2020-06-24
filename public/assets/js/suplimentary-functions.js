@@ -454,6 +454,9 @@ function openImportDialogue(item) {
                         video: true
                     };
                 }
+                console.log(constraints);
+                console.log(device);
+                
                 startCapture(constraints);
             });
 

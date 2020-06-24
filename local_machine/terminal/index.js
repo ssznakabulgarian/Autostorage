@@ -2,6 +2,7 @@ var readline = require('readline');
 var SerialPort = require('serialport');
 var Worker = require('worker_threads').Worker;
 var request = require('./nodeRequestCreator.js');
+const { type } = require('os');
 
 var connectionResponseString = "c",
     connectionString = "c",
@@ -26,7 +27,21 @@ QRreadWorker.on('exit', printMessage);
 QRreadWorker.on('message', (message) => {
     if (!awaitingCode) return;
     process.stdout.write(message + '\n');
-    receivedCode(message);
+    if (isNaN(message)) {
+        printMessage('invalid input');
+        startOperationDialogue();
+    } else {
+        handleReceivedCode(message)
+            .then(() => {
+                console.log(message);
+                startOperationDialogue();
+            })
+            .catch(error => {
+                if (error == 'invalidCode') printMessage('no matching code found');
+                else printMessage('an error occured: ' + error);
+                startOperationDialogue();
+            });
+    }
 });
 
 function printMessage(message) {
@@ -86,8 +101,15 @@ async function connectArduino() {
                     finish(false);
                 });
                 onSerialPortData = (data) => {
-                    var buffer = Buffer.from(data);
-                    if (buffer[buffer.length - 1] == 13 || buffer[buffer.length - 1] == 10) data = data.substring(0, data.length - 1);
+                    //console.log(data);
+                    var buffer;
+                    if(typeof(data)=="string"){
+                        buffer = Buffer.from(data);
+                        if (buffer[buffer.length - 1] == 13 || buffer[buffer.length - 1] == 10) data = data.substring(0, data.length - 1);
+                    }else{
+                        buffer = data;
+                        data = data.toString();
+                    }
                     if (data == connectionResponseString) finish(true);
                 }
                 connection.on('data', onSerialPortData);
@@ -135,7 +157,8 @@ async function sendToMachine(command) {
         if (manualMode) {
             (function prompt() {
                 printMessage(command);
-                rl.question('> ', (input) => {
+                
+                rl.question("> ", (input) => {
                     if (input == 'r') resolve();
                     else if (input == 'e') reject('opearationFailed');
                     else {
@@ -146,6 +169,7 @@ async function sendToMachine(command) {
             })();
         } else {
             onSerialPortData = (data) => {
+                if(typeof(data)!="string") data = data.toString();
                 var buffer = Buffer.from(data);
                 for (let i = 0; i < buffer.length; i++) {
                     let chr = buffer[i];
@@ -210,33 +234,44 @@ async function executeOperation(operation) {
     });
 }
 
-function receivedCode(code) {
-    awaitingCode = false;
-    var check = false;
-    operationsList.forEach(async element => {
-        if (element.code == code) {
-            check = true;
-            executeOperation(element)
-                .then(() => {
-                    startOperationDialogue();
-                }).catch((error) => {
-                    printMessage(error);
-                    startOperationDialogue();
-                });
+function handleReceivedCode(code) {
+    return new Promise((resolve, reject) => {
+        awaitingCode = false;
+        var check = false;
+        operationsList.forEach(async element => {
+            if (element.code == code) {
+                check = true;
+                executeOperation(element)
+                    .then(() => {
+                        resolve();
+                    }).catch((error) => {
+                        reject(error);
+                    });
+            }
+        });
+        if (!check) {
+            reject('invalidCode');
         }
     });
-    if (!check) {
-        printMessage('error: invalid code');
-        setTimeout(() => {
-            startOperationDialogue();
-        }, 1000);
-    }
 }
 
 function startOperationDialogue() {
     awaitingCode = true;
     rl.question('scan QR code or enter code: ', (input) => {
-        receivedCode(input);
+        if (isNaN(input)) {
+            printMessage('invalid input');
+            startOperationDialogue();
+        } else {
+            handleReceivedCode(input)
+                .then(() => {
+                    startOperationDialogue();
+                })
+                .catch(error => {
+                    if (error == 'invalidCode') printMessage('no matching code found');
+                    else printMessage('an error occured: ' + error);
+                    startOperationDialogue();
+                });
+        }
     });
 }
 
@@ -269,11 +304,11 @@ function arduinoMain() {
 
 async function manual() {
     manualMode = true;
-    startOperationDialogue(null);
+    startOperationDialogue();
 }
 
-function startup() {
-    rl.question('server address: ['+mainServerAddress+'] ', (address) => {
+(function startup() {
+    rl.question('server address: [' + mainServerAddress + '] ', (address) => {
         if (address != '') mainServerAddress = address;
         rl.question('mode (manual/auto): [auto] ', (input) => {
             setInterval(updateOperations, 1000);
@@ -285,6 +320,4 @@ function startup() {
             }
         });
     });
-}
-
-startup();
+})();
