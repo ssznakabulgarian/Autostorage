@@ -366,11 +366,6 @@ function updateCards() {
 }
 
 function openImportDialogue(item) {
-    if (isExportDialogueOpen) closeExportDialogue();
-    if (isImportDialogueOpen) closeImportDialogue();
-    if (isMaintenanceDialogueOpen) closeMaintenanceDialogue();
-    isImportDialogueOpen = true;
-    QRCodeVideo = tmp.querySelector('#import-card-video');
     var selectedCardAddress = item.id,
         tmp = importCardTemplate.cloneNode(true),
         operationCode = null,
@@ -383,6 +378,12 @@ function openImportDialogue(item) {
         printQRcodeBody = tmp.querySelector('#import-print-QR-code-body'),
         numberCodeInput = tmp.querySelector('#import-number-code-input'),
         QRCodeCanvas = tmp.querySelector('#import-card-canvas');
+
+    if (isExportDialogueOpen) closeExportDialogue();
+    if (isImportDialogueOpen) closeImportDialogue();
+    if (isMaintenanceDialogueOpen) closeMaintenanceDialogue();
+    isImportDialogueOpen = true;
+    QRCodeVideo = tmp.querySelector('#import-card-video');
 
     function updatePrintPreview() {
         printQRcodeIframe.src = "https://api.qrserver.com/v1/create-qr-code/?size=" + printQRcodeSizeInput.value + "x" + printQRcodeSizeInput.value + "&data=" + numberCodeInput.value;
