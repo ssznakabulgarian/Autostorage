@@ -694,7 +694,9 @@ function genStorageUnitCards() {
                 }
                 importExportButton.innerHTML = (cardType == 'danger') ? "import" : "export";
                 importExportButton.setAttribute('class', 'btn btn-' + cardType);
-                if (cardType == "warning") importExportButton.setAttribute('disabled', '');
+                if (cardType == "warning"){
+                    importExportButton.innerHTML = "import/export";
+                    importExportButton.setAttribute('disabled', '');
                 if (cardType == "success") maintenanceButton.setAttribute('disabled', '');
                 currentCard.firstElementChild.setAttribute('class', 'card shadow border-left-' + cardType + ' py-2');
                 nameElement.parentElement.setAttribute('class', 'text-uppercase text-' + cardType + ' font-weight-bold mb-1 h-4');
