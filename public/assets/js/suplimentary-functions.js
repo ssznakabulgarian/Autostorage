@@ -386,7 +386,8 @@ function openImportDialogue(item) {
     QRCodeVideo = tmp.querySelector('#import-card-video');
 
     function updatePrintPreview() {
-        printQRcodeIframe.src = "https://api.qrserver.com/v1/create-qr-code/?size=" + printQRcodeSizeInput.value + "x" + printQRcodeSizeInput.value + "&data=" + numberCodeInput.value;
+        //printQRcodeIframe.src = "https://api.qrserver.com/v1/create-qr-code/?size=" + printQRcodeSizeInput.value + "x" + printQRcodeSizeInput.value + "&data=" + numberCodeInput.value;
+        printQRcodeIframe.contentWindow.document.body.innerHTML = '<img width="'+printQRcodeSizeInput+'" height="'+printQRcodeSizeInput+'" src="https://api.qrserver.com/v1/create-qr-code/?size=' + printQRcodeSizeInput.value + 'x' + printQRcodeSizeInput.value + '&data=' + numberCodeInput.value+'" />';
     }
     numberCodeInput.value = operationCode = Math.round(Math.random() * 8999999) + 1000000;
     numberCodeInput.addEventListener('keyup', () => {
