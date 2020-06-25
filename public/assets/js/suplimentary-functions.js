@@ -215,10 +215,11 @@ var importCard,
     cardsUpdateInterval,
     storageUnitPrice = 2.4916,
     vatRate = 20,
-    QRCodeVideo,
+    QRcodeVideo,
     QRcodesDecoder = new Worker('assets/js/decoder.js'),
     checkForQRcode = false,
-    QRcodeCTX;
+    QRcodeCTX,
+    QRcodeCanvas;
 
 function setUtilityVars() {
     // ------ window/general ------
@@ -318,9 +319,9 @@ function startCamera() {
             }
             navigator.mediaDevices.getUserMedia(constraints)
                 .then((stream) => {
-                    QRCodeVideo.srcObject = stream;
-                    QRCodeVideo.setAttribute('playsinline', true);
-                    QRCodeVideo.setAttribute('controls', true);
+                    QRcodeVideo.srcObject = stream;
+                    QRcodeVideo.setAttribute('playsinline', true);
+                    QRcodeVideo.setAttribute('controls', true);
                     setTimeout(() => {
                         document.querySelector('video').removeAttribute('controls');
                     });
@@ -337,15 +338,15 @@ function startCamera() {
 }
 
 function stopCamera() {
-    if (QRCodeVideo) QRCodeVideo.srcObject.getTracks().forEach((track) => {
+    if (QRcodeVideo) QRcodeVideo.srcObject.getTracks().forEach((track) => {
         track.stop();
     });
 }
 
 function decodeQRcodeFrame() {
     try {
-        QRcodeCTX.drawImage(QRCodeVideo, 0, 0, QRCodeCanvas.width, QRCodeCanvas.height);
-        var imgData = QRcodeCTX.getImageData(0, 0, QRCodeCanvas.width, QRCodeCanvas.height);
+        QRcodeCTX.drawImage(QRcodeVideo, 0, 0, QRcodeCanvas.width, QRcodeCanvas.height);
+        var imgData = QRcodeCTX.getImageData(0, 0, QRcodeCanvas.width, QRcodeCanvas.height);
 
         if (imgData.data) {
             QRcodesDecoder.postMessage(imgData);
@@ -373,7 +374,7 @@ function logout() {
 }
 
 function closeExportDialogue() {
-    if (QRCodeVideo && QRCodeVideo.srcObject) stopCamera();
+    if (QRcodeVideo && QRcodeVideo.srcObject) stopCamera();
     decodeFrame = () => {};
     var card = document.getElementById('export-card');
     card.parentElement.removeChild(card);
@@ -381,7 +382,7 @@ function closeExportDialogue() {
 }
 
 function closeImportDialogue() {
-    if (QRCodeVideo && QRCodeVideo.srcObject) stopCamera();
+    if (QRcodeVideo && QRcodeVideo.srcObject) stopCamera();
     decodeFrame = () => {};
     var card = document.getElementById('import-card');
     card.parentElement.removeChild(card);
@@ -409,11 +410,11 @@ function openExportDialogue(item) {
         printQRcodeButton = tmp.querySelector("#export-print-QR-code-button"),
         QRCodeInputBody = tmp.querySelector('#export-QR-code-input-body'),
         printQRcodeBody = tmp.querySelector('#export-print-QR-code-body'),
-        numberCodeInput = tmp.querySelector('#export-number-code-input'),
-        QRCodeCanvas = tmp.querySelector('#export-card-canvas');
+        numberCodeInput = tmp.querySelector('#export-number-code-input');
 
-    QRCodeVideo = tmp.querySelector('#export-card-video');
-    QRcodeCTX = QRCodeCanvas.getContext('2d');
+    QRcodeCanvas = tmp.querySelector('#export-card-canvas');
+    QRcodeVideo = tmp.querySelector('#export-card-video');
+    QRcodeCTX = QRcodeCanvas.getContext('2d');
     isExportDialogueOpen = true;
 
     function updatePrintPreview() {
@@ -515,12 +516,12 @@ function openImportDialogue(item) {
         printQRcodeButton = tmp.querySelector("#import-print-QR-code-button"),
         QRCodeInputBody = tmp.querySelector('#import-QR-code-input-body'),
         printQRcodeBody = tmp.querySelector('#import-print-QR-code-body'),
-        numberCodeInput = tmp.querySelector('#import-number-code-input'),
-        QRCodeCanvas = tmp.querySelector('#import-card-canvas');
+        numberCodeInput = tmp.querySelector('#import-number-code-input');
 
+    QRcodeCanvas = tmp.querySelector('#import-card-canvas');
+    QRcodeVideo = tmp.querySelector('#import-card-video');
+    QRcodeCTX = QRcodeCanvas.getContext('2d');
     isImportDialogueOpen = true;
-    QRCodeVideo = tmp.querySelector('#import-card-video');
-    QRcodeCTX = QRCodeCanvas.getContext('2d');
 
     function updatePrintPreview() {
         //printQRcodeIframe.src = "https://api.qrserver.com/v1/create-qr-code/?size=" + printQRcodeSizeInput.value + "x" + printQRcodeSizeInput.value + "&data=" + numberCodeInput.value;
