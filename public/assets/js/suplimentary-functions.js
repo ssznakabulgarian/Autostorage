@@ -692,9 +692,10 @@ function genStorageUnitCards() {
                         cardType = 'primary';
                         break;
                 }
-                importExportButton.innerHTML = (cardType=='danger') ? "import" : "export";
-                importExportButton.setAttribute('class', 'btn btn-'+cardType);
-                if(cardType=="warning") importExportButton.setAttribute('disabled','');
+                importExportButton.innerHTML = (cardType == 'danger') ? "import" : "export";
+                importExportButton.setAttribute('class', 'btn btn-' + cardType);
+                if (cardType == "warning") importExportButton.setAttribute('disabled', '');
+                if (cardType == "success") maintenanceButton.setAttribute('disabled', '');
                 currentCard.firstElementChild.setAttribute('class', 'card shadow border-left-' + cardType + ' py-2');
                 nameElement.parentElement.setAttribute('class', 'text-uppercase text-' + cardType + ' font-weight-bold mb-1 h-4');
 
@@ -715,26 +716,24 @@ function genStorageUnitCards() {
                     e.preventDefault();
                     return false;
                 };
-                currentCard.onmousedown = (e) => {
-                    var element = e.srcElement;
-                    var mouseButton = e.button;
-                    while (!element.hasAttribute('status')) element = element.parentElement;
 
-                    if (mouseButton == 0) {
-                        switch (element.getAttribute('status')) {
-                            case 'vacant':
-                                openImportDialogue(element);
-                                break;
-                            case 'processing':
-                                updateCards();
-                                break;
-                            case 'occupied':
-                                openExportDialogue(element);
-                                break;
-                        }
-                    } else if (mouseButton == 2) {
-                        openMaintenanceDialogue(element);
+                importExportButton.onclick = (e) => {
+                    var element = e.srcElement;
+                    while (!element.hasAttribute('status')) element = element.parentElement;
+                    switch (element.getAttribute('status')) {
+                        case 'vacant':
+                            openImportDialogue(element);
+                            break;
+                        case 'occupied':
+                            openExportDialogue(element);
+                            break;
                     }
+                };
+
+                maintenanceButton.onclick = () => {
+                    var element = e.srcElement;
+                    while (!element.hasAttribute('status')) element = element.parentElement;
+                    openMaintenanceDialogue(element);
                 };
 
                 cardsContainerElement.appendChild(currentCard);
