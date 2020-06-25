@@ -217,7 +217,8 @@ var importCard,
     vatRate = 20,
     QRCodeVideo,
     QRcodesDecoder = new Worker('assets/js/decoder.js'),
-    checkForQRcode = false;
+    checkForQRcode = false,
+    QRcodeCTX;
 
 function setUtilityVars() {
     // ------ window/general ------
@@ -331,7 +332,7 @@ function startCamera() {
 
     QRcodesDecoder.onmessage = (e) => {
         if (e.data.length > 0) foundCode(e.data[0][2]);
-        if(checkForQRcode) setTimeout(decodeQRcodeFrame, 0);
+        if (checkForQRcode) setTimeout(decodeQRcodeFrame, 0);
     }
 }
 
@@ -343,8 +344,8 @@ function stopCamera() {
 
 function decodeQRcodeFrame() {
     try {
-        ctx.drawImage(QRCodeVideo, 0, 0, QRCodeCanvas.width, QRCodeCanvas.height);
-        var imgData = ctx.getImageData(0, 0, QRCodeCanvas.width, QRCodeCanvas.height);
+        QRcodeCTX.drawImage(QRCodeVideo, 0, 0, QRCodeCanvas.width, QRCodeCanvas.height);
+        var imgData = QRcodeCTX.getImageData(0, 0, QRCodeCanvas.width, QRCodeCanvas.height);
 
         if (imgData.data) {
             QRcodesDecoder.postMessage(imgData);
@@ -353,7 +354,8 @@ function decodeQRcodeFrame() {
         console.log(e);
 
         // Try-Catch to circumvent Firefox Bug #879717
-        if (e.name == 'NS_ERROR_NOT_AVAILABLE') if(checkForQRcode) setTimeout(decodeQRcodeFrame, 0);
+        if (e.name == 'NS_ERROR_NOT_AVAILABLE')
+            if (checkForQRcode) setTimeout(decodeQRcodeFrame, 0);
     }
 };
 
@@ -411,6 +413,7 @@ function openExportDialogue(item) {
         QRCodeCanvas = tmp.querySelector('#export-card-canvas');
 
     QRCodeVideo = tmp.querySelector('#export-card-video');
+    QRcodeCTX = QRCodeCanvas.getContext('2d');
     isExportDialogueOpen = true;
 
     function updatePrintPreview() {
@@ -441,8 +444,6 @@ function openExportDialogue(item) {
         document.getElementById("export-use-QR-code-radio-input").setAttribute('checked', '');
         QRCodeInputBody.style = 'display: inline-block';
         printQRcodeBody.style = 'display: none';
-
-        var ctx = QRCodeCanvas.getContext('2d');
 
         foundCode = (code) => {
             operationCode = code;
@@ -519,6 +520,7 @@ function openImportDialogue(item) {
 
     isImportDialogueOpen = true;
     QRCodeVideo = tmp.querySelector('#import-card-video');
+    QRcodeCTX = QRCodeCanvas.getContext('2d');
 
     function updatePrintPreview() {
         //printQRcodeIframe.src = "https://api.qrserver.com/v1/create-qr-code/?size=" + printQRcodeSizeInput.value + "x" + printQRcodeSizeInput.value + "&data=" + numberCodeInput.value;
@@ -548,8 +550,6 @@ function openImportDialogue(item) {
         document.getElementById("import-use-QR-code-radio-input").setAttribute('checked', '');
         QRCodeInputBody.style = 'display: inline-block';
         printQRcodeBody.style = 'display: none';
-
-        var ctx = QRCodeCanvas.getContext('2d');
 
         foundCode = (code) => {
             operationCode = code;
