@@ -481,7 +481,8 @@ function openExportDialogue(item) {
                 //  slot: document.getElementById('export-slot-select').value,
                 item: {
                     address: selectedCardAddress
-                }
+                },
+                code: operationCode
             }, (success, result, errors, e) => {
                 if (!success) handleErrors(errors);
                 else {
