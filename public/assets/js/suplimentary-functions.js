@@ -647,7 +647,16 @@ function openMaintenanceDialogue(item) {
 }
 
 function genStorageUnitCards() {
-    var cardType, template, currentCard, codeElement, nameElement, descriptionElement, statusElement, timeOwnedElement;
+    var cardType,
+        template,
+        currentCard,
+        codeElement,
+        nameElement,
+        descriptionElement,
+        statusElement,
+        timeOwnedElement,
+        importExportButton,
+        maintenanceButton;
 
     request('/warehouse/list_storage_units', null, {
         token: localStorage.getItem('token')
@@ -666,6 +675,8 @@ function genStorageUnitCards() {
                 statusElement = currentCard.querySelector("#statusElement");
                 timeOwnedElement = currentCard.querySelector("#timeFilledElement");
                 codeElement = currentCard.querySelector("#codeElement");
+                importExportButton = currentCard.querySelector("#import-export-button");
+                maintenanceButton = currentCard.querySelector("#maintenance-button");
                 currentCard.setAttribute('id', element.address.toString());
                 switch (element.status) {
                     case 'vacant':
@@ -681,6 +692,9 @@ function genStorageUnitCards() {
                         cardType = 'primary';
                         break;
                 }
+                importExportButton.innerHTML = (cardType=='danger') ? "import" : "export";
+                importExportButton.setAttribute('class', 'btn btn-'+cardType);
+                if(cardType=="warning") importExportButton.setAttribute('disabled','');
                 currentCard.firstElementChild.setAttribute('class', 'card shadow border-left-' + cardType + ' py-2');
                 nameElement.parentElement.setAttribute('class', 'text-uppercase text-' + cardType + ' font-weight-bold mb-1 h-4');
 
