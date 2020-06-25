@@ -215,7 +215,9 @@ var importCard,
     cardsUpdateInterval,
     storageUnitPrice = 2.4916,
     vatRate = 20,
-    QRCodeVideo;
+    QRCodeVideo,
+    QRcodesDecoder = new Worker('assets/js/decoder.js'),
+    checkForQRcode = false;
 
 function setUtilityVars() {
     // ------ window/general ------
@@ -296,6 +298,65 @@ function setUtilityVars() {
     purchaseSubmitButton = document.getElementById('storage-unit-purchase-submit-button');
 }
 
+var foundCode = () => {};
+
+function startCamera() {
+    navigator.mediaDevices.enumerateDevices()
+        .then((devices) => {
+            var device = devices.filter(function (device) {
+                if (device.kind == 'videoinput') {
+                    return device;
+                }
+            });
+            if (!device.length) handleErrors(["noCameraAvailable"]);
+            var constraints = {
+                video: true
+            };
+            if (window.iOS) {
+                constraints.video.facingMode = 'environment';
+            }
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then((stream) => {
+                    QRCodeVideo.srcObject = stream;
+                    QRCodeVideo.setAttribute('playsinline', true);
+                    QRCodeVideo.setAttribute('controls', true);
+                    setTimeout(() => {
+                        document.querySelector('video').removeAttribute('controls');
+                    });
+                })
+                .catch(function (err) {
+                    handleErrors([err]);
+                });
+        });
+
+    QRcodesDecoder.onmessage = (e) => {
+        if (e.data.length > 0) foundCode(e.data[0][2]);
+        if(checkForQRcode) setTimeout(decodeQRcodeFrame, 0);
+    }
+}
+
+function stopCamera() {
+    if (QRCodeVideo) QRCodeVideo.srcObject.getTracks().forEach((track) => {
+        track.stop();
+    });
+}
+
+function decodeQRcodeFrame() {
+    try {
+        ctx.drawImage(QRCodeVideo, 0, 0, QRCodeCanvas.width, QRCodeCanvas.height);
+        var imgData = ctx.getImageData(0, 0, QRCodeCanvas.width, QRCodeCanvas.height);
+
+        if (imgData.data) {
+            QRcodesDecoder.postMessage(imgData);
+        }
+    } catch (e) {
+        console.log(e);
+
+        // Try-Catch to circumvent Firefox Bug #879717
+        if (e.name == 'NS_ERROR_NOT_AVAILABLE') if(checkForQRcode) setTimeout(decodeQRcodeFrame, 0);
+    }
+};
+
 function logout() {
     if (localStorage.getItem('token')) {
         request('/users/logout', null, {
@@ -310,15 +371,16 @@ function logout() {
 }
 
 function closeExportDialogue() {
+    if (QRCodeVideo && QRCodeVideo.srcObject) stopCamera();
+    decodeFrame = () => {};
     var card = document.getElementById('export-card');
     card.parentElement.removeChild(card);
     isExportDialogueOpen = false;
 }
 
 function closeImportDialogue() {
-    if (QRCodeVideo && QRCodeVideo.srcObject) QRCodeVideo.srcObject.getTracks().forEach((track) => {
-        track.stop();
-    });
+    if (QRCodeVideo && QRCodeVideo.srcObject) stopCamera();
+    decodeFrame = () => {};
     var card = document.getElementById('import-card');
     card.parentElement.removeChild(card);
     isImportDialogueOpen = false;
@@ -334,60 +396,26 @@ function openExportDialogue(item) {
     if (isExportDialogueOpen) closeExportDialogue();
     if (isImportDialogueOpen) closeImportDialogue();
     if (isMaintenanceDialogueOpen) closeMaintenanceDialogue();
-    var selectedCardAddress = item.id;
-    var tmp = exportCardTemplate.cloneNode(true);
-    //  setAvailableSlots(tmp);
-    isExportDialogueOpen = true;
-    dashboardMainContainer.appendChild(tmp);
-    document.getElementById('export-submit-button').addEventListener('click', (e) => {
-        e.preventDefault();
-        request('/warehouse/export', null, {
-            token: localStorage.getItem('token'),
-            //  slot: document.getElementById('export-slot-select').value,
-            item: {
-                address: selectedCardAddress
-            }
-        }, (success, result, errors, e) => {
-            if (!success) handleErrors(errors);
-            else {
-                console.log(result);
-                genStorageUnitCards();
-            }
-            closeExportDialogue();
-        });
-    });
-}
 
-function updateCards() {
-    if (isExportDialogueOpen) closeExportDialogue();
-    if (isImportDialogueOpen) closeImportDialogue();
-    if (isMaintenanceDialogueOpen) closeMaintenanceDialogue();
-    genStorageUnitCards();
-}
-
-function openImportDialogue(item) {
     var selectedCardAddress = item.id,
-        tmp = importCardTemplate.cloneNode(true),
+        tmp = exportCardTemplate.cloneNode(true),
         operationCode = null,
-        useQRCodeButton = tmp.querySelector('#import-use-QR-code'),
-        useNumberCodeButton = tmp.querySelector('#import-use-number-code'),
-        printQRcodeIframe = tmp.querySelector('#import-QR-code-print-iframe'),
-        printQRcodeSizeInput = tmp.querySelector('#import-QR-code-print-size-input'),
-        printQRcodeButton = tmp.querySelector("#import-print-QR-code-button"),
-        QRCodeInputBody = tmp.querySelector('#import-QR-code-input-body'),
-        printQRcodeBody = tmp.querySelector('#import-print-QR-code-body'),
-        numberCodeInput = tmp.querySelector('#import-number-code-input'),
-        QRCodeCanvas = tmp.querySelector('#import-card-canvas');
+        useQRCodeButton = tmp.querySelector('#export-use-QR-code'),
+        useNumberCodeButton = tmp.querySelector('#export-use-number-code'),
+        printQRcodeIframe = tmp.querySelector('#export-QR-code-print-iframe'),
+        printQRcodeSizeInput = tmp.querySelector('#export-QR-code-print-size-input'),
+        printQRcodeButton = tmp.querySelector("#export-print-QR-code-button"),
+        QRCodeInputBody = tmp.querySelector('#export-QR-code-input-body'),
+        printQRcodeBody = tmp.querySelector('#export-print-QR-code-body'),
+        numberCodeInput = tmp.querySelector('#export-number-code-input'),
+        QRCodeCanvas = tmp.querySelector('#export-card-canvas');
 
-    if (isExportDialogueOpen) closeExportDialogue();
-    if (isImportDialogueOpen) closeImportDialogue();
-    if (isMaintenanceDialogueOpen) closeMaintenanceDialogue();
-    isImportDialogueOpen = true;
-    QRCodeVideo = tmp.querySelector('#import-card-video');
+    QRCodeVideo = tmp.querySelector('#export-card-video');
+    isExportDialogueOpen = true;
 
     function updatePrintPreview() {
         //printQRcodeIframe.src = "https://api.qrserver.com/v1/create-qr-code/?size=" + printQRcodeSizeInput.value + "x" + printQRcodeSizeInput.value + "&data=" + numberCodeInput.value;
-        printQRcodeIframe.contentWindow.document.body.innerHTML = '<img width="'+printQRcodeSizeInput+'" height="'+printQRcodeSizeInput+'" src="https://api.qrserver.com/v1/create-qr-code/?size=' + printQRcodeSizeInput.value + 'x' + printQRcodeSizeInput.value + '&data=' + numberCodeInput.value+'" />';
+        printQRcodeIframe.contentWindow.document.body.innerHTML = '<img width="' + printQRcodeSizeInput + '" height="' + printQRcodeSizeInput + '" src="https://api.qrserver.com/v1/create-qr-code/?size=' + printQRcodeSizeInput.value + 'x' + printQRcodeSizeInput.value + '&data=' + numberCodeInput.value + '" />';
     }
     numberCodeInput.value = operationCode = Math.round(Math.random() * 8999999) + 1000000;
     numberCodeInput.addEventListener('keyup', () => {
@@ -407,7 +435,114 @@ function openImportDialogue(item) {
         printQRcodeIframe.focus();
         printQRcodeIframe.contentWindow.print();
     }
-    
+
+    useQRCodeButton.onclick = function () {
+        document.getElementById("export-use-number-code-radio-input").removeAttribute('checked');
+        document.getElementById("export-use-QR-code-radio-input").setAttribute('checked', '');
+        QRCodeInputBody.style = 'display: inline-block';
+        printQRcodeBody.style = 'display: none';
+
+        var ctx = QRCodeCanvas.getContext('2d');
+
+        foundCode = (code) => {
+            operationCode = code;
+            if (isNaN(code)) alert('Your code must contain only numbers!\ncode: ' + code);
+            else {
+                numberCodeInput.value = operationCode;
+                updatePrintPreview();
+            }
+        }
+        startCamera();
+        checkForQRcode = true;
+        decodeQRcodeFrame();
+    }
+    useNumberCodeButton.onclick = function () {
+        document.getElementById("export-use-number-code-radio-input").setAttribute('checked', '');
+        document.getElementById("export-use-QR-code-radio-input").removeAttribute('checked');
+        printQRcodeBody.style = 'display: inline-block';
+        QRCodeInputBody.style = 'display: none';
+        checkForQRcode = false;
+        stopCamera();
+    }
+    numberCodeInput.onclick = numberCodeInput.onkeyup = () => {
+        operationCode = numberCodeInput.value;
+    }
+    dashboardMainContainer.appendChild(tmp);
+    document.getElementById('export-submit-button').addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!operationCode) alert('You must enter a number code or scan a QR code.');
+        else {
+            checkForQRcode = false;
+            stopCamera();
+            request('/warehouse/export', null, {
+                token: localStorage.getItem('token'),
+                //  slot: document.getElementById('export-slot-select').value,
+                item: {
+                    address: selectedCardAddress
+                }
+            }, (success, result, errors, e) => {
+                if (!success) handleErrors(errors);
+                else {
+                    console.log(result);
+                    genStorageUnitCards();
+                }
+                closeExportDialogue();
+            });
+        }
+    });
+}
+
+function updateCards() {
+    if (isExportDialogueOpen) closeExportDialogue();
+    if (isImportDialogueOpen) closeImportDialogue();
+    if (isMaintenanceDialogueOpen) closeMaintenanceDialogue();
+    genStorageUnitCards();
+}
+
+function openImportDialogue(item) {
+    if (isExportDialogueOpen) closeExportDialogue();
+    if (isImportDialogueOpen) closeImportDialogue();
+    if (isMaintenanceDialogueOpen) closeMaintenanceDialogue();
+
+    var selectedCardAddress = item.id,
+        tmp = importCardTemplate.cloneNode(true),
+        operationCode = null,
+        useQRCodeButton = tmp.querySelector('#import-use-QR-code'),
+        useNumberCodeButton = tmp.querySelector('#import-use-number-code'),
+        printQRcodeIframe = tmp.querySelector('#import-QR-code-print-iframe'),
+        printQRcodeSizeInput = tmp.querySelector('#import-QR-code-print-size-input'),
+        printQRcodeButton = tmp.querySelector("#import-print-QR-code-button"),
+        QRCodeInputBody = tmp.querySelector('#import-QR-code-input-body'),
+        printQRcodeBody = tmp.querySelector('#import-print-QR-code-body'),
+        numberCodeInput = tmp.querySelector('#import-number-code-input'),
+        QRCodeCanvas = tmp.querySelector('#import-card-canvas');
+
+    isImportDialogueOpen = true;
+    QRCodeVideo = tmp.querySelector('#import-card-video');
+
+    function updatePrintPreview() {
+        //printQRcodeIframe.src = "https://api.qrserver.com/v1/create-qr-code/?size=" + printQRcodeSizeInput.value + "x" + printQRcodeSizeInput.value + "&data=" + numberCodeInput.value;
+        printQRcodeIframe.contentWindow.document.body.innerHTML = '<img width="' + printQRcodeSizeInput + '" height="' + printQRcodeSizeInput + '" src="https://api.qrserver.com/v1/create-qr-code/?size=' + printQRcodeSizeInput.value + 'x' + printQRcodeSizeInput.value + '&data=' + numberCodeInput.value + '" />';
+    }
+    numberCodeInput.value = operationCode = Math.round(Math.random() * 8999999) + 1000000;
+    numberCodeInput.addEventListener('keyup', () => {
+        updatePrintPreview();
+    });
+    numberCodeInput.addEventListener('mouseup', () => {
+        updatePrintPreview();
+    });
+    printQRcodeSizeInput.addEventListener('keyup', () => {
+        updatePrintPreview();
+    });
+    printQRcodeSizeInput.addEventListener('mouseup', () => {
+        updatePrintPreview();
+    });
+    printQRcodeButton.onclick = (e) => {
+        e.preventDefault();
+        printQRcodeIframe.focus();
+        printQRcodeIframe.contentWindow.print();
+    }
+
     useQRCodeButton.onclick = function () {
         document.getElementById("import-use-number-code-radio-input").removeAttribute('checked');
         document.getElementById("import-use-QR-code-radio-input").setAttribute('checked', '');
@@ -415,123 +550,37 @@ function openImportDialogue(item) {
         printQRcodeBody.style = 'display: none';
 
         var ctx = QRCodeCanvas.getContext('2d');
-        var decoder = new Worker('assets/js/decoder.js');
 
-
-        function foundCode(code) {
+        foundCode = (code) => {
             operationCode = code;
-            console.log(code);
-
             if (isNaN(code)) alert('Your code must contain only numbers!\ncode: ' + code);
             else {
                 numberCodeInput.value = operationCode;
                 updatePrintPreview();
             }
         }
-
-        function startCapture(constraints) {
-            navigator.mediaDevices.getUserMedia(constraints)
-                .then((stream) => {
-                    QRCodeVideo.srcObject = stream;
-                    QRCodeVideo.setAttribute('playsinline', true);
-                    QRCodeVideo.setAttribute('controls', true);
-                    setTimeout(() => {
-                        document.querySelector('video').removeAttribute('controls');
-                    });
-                })
-                .catch(function (err) {
-                    handleErrors([err]);
-                });
-        }
-
-        navigator.mediaDevices.enumerateDevices()
-            .then((devices) => {
-                var device = devices.filter(function (device) {
-                    if (device.kind == 'videoinput') {
-                        return device;
-                    }
-                });
-                var constraints;
-                if (device.length > 1) {
-                    constraints = {
-                        video: {
-                            mandatory: {
-                                sourceId: device[1].deviceId ? device[1].deviceId : null
-                            }
-                        },
-                        audio: false
-                    };
-                    if (window.iOS) {
-                        constraints.video.facingMode = 'environment';
-                    }
-                } else if (device.length) {
-                    constraints = {
-                        video: {
-                            mandatory: {
-                                sourceId: device[0].deviceId ? device[0].deviceId : null
-                            }
-                        },
-                        audio: false
-                    };
-                    if (window.iOS) {
-                        constraints.video.facingMode = 'environment';
-                    }
-                } else {
-                    // constraints = {
-                    //     video: true
-                    // };
-                }
-                constraints = {
-                    video: true
-                };
-
-                startCapture(constraints);
-            });
-
-        decoder.onmessage = (e) => {
-            if (e.data.length > 0) foundCode(e.data[0][2]);
-            setTimeout(decodeFrame, 0);
-        }
-
-        function decodeFrame() {
-            try {
-                ctx.drawImage(QRCodeVideo, 0, 0, QRCodeCanvas.width, QRCodeCanvas.height);
-                var imgData = ctx.getImageData(0, 0, QRCodeCanvas.width, QRCodeCanvas.height);
-
-                if (imgData.data) {
-                    decoder.postMessage(imgData);
-                }
-            } catch (e) {
-                console.log(e);
-
-                // Try-Catch to circumvent Firefox Bug #879717
-                if (e.name == 'NS_ERROR_NOT_AVAILABLE') setTimeout(decodeFrame, 0);
-            }
-        };
-
-        decodeFrame();
+        startCamera();
+        checkForQRcode = true;
+        decodeQRcodeFrame();
     }
     useNumberCodeButton.onclick = function () {
         document.getElementById("import-use-number-code-radio-input").setAttribute('checked', '');
         document.getElementById("import-use-QR-code-radio-input").removeAttribute('checked');
         printQRcodeBody.style = 'display: inline-block';
         QRCodeInputBody.style = 'display: none';
-        if (QRCodeVideo) QRCodeVideo.srcObject.getTracks().forEach((track) => {
-            track.stop();
-        });
+        checkForQRcode = false;
+        stopCamera();
     }
     numberCodeInput.onclick = numberCodeInput.onkeyup = () => {
         operationCode = numberCodeInput.value;
-        updatePrintPreview();
     }
     dashboardMainContainer.appendChild(tmp);
     document.getElementById('import-submit-button').addEventListener('click', (e) => {
         e.preventDefault();
         if (!operationCode) alert('You must enter a number code or scan a QR code.');
         else {
-            QRCodeVideo.srcObject.getTracks().forEach((track) => {
-                track.stop();
-            });
+            checkForQRcode = false;
+            stopCamera();
             request('/warehouse/import', null, {
                 token: localStorage.getItem('token'),
                 item: {

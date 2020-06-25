@@ -198,7 +198,7 @@
                                             <div class="col" id="import-QR-code-input-body" style="display: none;"><video id="import-card-video" style="max-width: 100%;" autoplay></video>
 <canvas id="import-card-canvas" style="display: none;"></canvas></div>
                                             <div class="col mb-2" id="import-print-QR-code-body"><iframe id="import-QR-code-print-iframe"></iframe>
-<input class="form-control mt-2" id="import-QR-code-print-size-input" type="number" min="1" max="2000" value="150"></input>
+<input class="form-control mt-2" id="import-QR-code-print-size-input" type="number" min="1" max="1000" value="150"></input>
 <button class="btn btn-secondary btn-sm mt-2" id="import-print-QR-code-button">Print</button></div>
                                     </div>
                             </div>
@@ -216,27 +216,39 @@
                         </div>
                         <div class="card-body">
                             <form>
-                                <div class="form-group"><button class="btn btn-primary btn-sm" id="export-submit-button">Export</button></div>
-                            </form>
+                                <div class="form-group" style="width: 100%;">
+                                    <div class="mb-2" style="width: 15rem;max-width: 100%;"><label><strong>Code</strong><br></label><input class="form-control" type="number" id="export-number-code-input"></div>
+                                    <div id="export-code-switch" class="toggle mb-1"><input type="radio" id="export-use-QR-code-radio-input"><label id="export-use-QR-code">QR code</label><input type="radio" id="export-use-number-code-radio-input" checked=""><label id="export-use-number-code">number</label></div>
+                                    <div
+                                        class="form-row">
+                                        <div class="col" id="export-QR-code-input-body" style="display: none;"><video id="export-card-video" style="max-width: 100%;" autoplay></video>
+<canvas id="export-card-canvas" style="display: none;"></canvas></div>
+                                        <div class="col mb-2" id="export-print-QR-code-body"><iframe id="export-QR-code-print-iframe"></iframe>
+<input class="form-control mt-2" id="export-QR-code-print-size-input" type="number" min="1" max="1000" value="150"></input>
+<button class="btn btn-secondary btn-sm mt-2" id="export-print-QR-code-button">Print</button></div>
+                                </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row" id="maintenance-card">
-                <div class="col">
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <p class="text-danger m-0 font-weight-bold">Maintenance<br></p>
-                        </div>
-                        <div class="card-body">
-                            <form>
-                                <div class="form-group"><button class="btn btn-outline-danger btn-sm mr-3" id="release-storage-unit-button">Release storage unit</button><button class="btn btn-outline-danger btn-sm" id="cancel-operation-button">Cancel operation</button></div>
-                            </form>
-                        </div>
+                        <div class="form-group"><button class="btn btn-primary btn-sm" id="export-submit-button">Export</button></div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
+        <div class="row" id="maintenance-card">
+            <div class="col">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <p class="text-danger m-0 font-weight-bold">Maintenance<br></p>
+                    </div>
+                    <div class="card-body">
+                        <form>
+                            <div class="form-group"><button class="btn btn-outline-danger btn-sm mr-3" id="release-storage-unit-button">Release storage unit</button><button class="btn btn-outline-danger btn-sm" id="cancel-operation-button">Cancel operation</button></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     </div>
     <footer class="bg-white sticky-footer">
         <div class="container my-auto">
