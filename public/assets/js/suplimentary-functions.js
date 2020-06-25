@@ -730,7 +730,7 @@ function genStorageUnitCards() {
                     }
                 };
 
-                maintenanceButton.onclick = () => {
+                maintenanceButton.onclick = (e) => {
                     var element = e.srcElement;
                     while (!element.hasAttribute('status')) element = element.parentElement;
                     openMaintenanceDialogue(element);
