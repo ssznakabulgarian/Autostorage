@@ -2,7 +2,6 @@ var readline = require('readline');
 var SerialPort = require('serialport');
 var Worker = require('worker_threads').Worker;
 var request = require('./nodeRequestCreator.js');
-const { type } = require('os');
 
 var connectionResponseString = "c",
     connectionString = "c",
@@ -14,6 +13,7 @@ var connectionResponseString = "c",
     operationsList = [],
     isOperationRunning = false,
     manualMode,
+    lastCode,
     awaitingCode;
 
 var rl = readline.createInterface({
@@ -25,22 +25,29 @@ var QRreadWorker = new Worker("./QRdecoderWorker.js");
 QRreadWorker.on('error', printMessage);
 QRreadWorker.on('exit', printMessage);
 QRreadWorker.on('message', (message) => {
-    if (!awaitingCode) return;
-    process.stdout.write(message + '\n');
+    if (!awaitingCode || message == lastCode) return;
+    lastCode=message;
+    setTimeout(() => {
+        lastCode=null;
+    }, 5000);
+    //process.stdout.write(message + '\n');
     if (isNaN(message)) {
         printMessage('invalid input');
         startOperationDialogue();
     } else {
-        handleReceivedCode(message)
-            .then(() => {
-                console.log(message);
-                startOperationDialogue();
-            })
-            .catch(error => {
-                if (error == 'invalidCode') printMessage('no matching code found');
-                else printMessage('an error occured: ' + error);
-                startOperationDialogue();
-            });
+        rl.write(message+'\n');
+        //rl.cursor=message.length;
+        //rl.emit("line");
+        // handleReceivedCode(message)
+        //     .then(() => {
+        //         console.log(message);
+        //         startOperationDialogue();
+        //     })
+        //     .catch(error => {
+        //         if (error == 'invalidCode') printMessage('no matching code found');
+        //         else printMessage('an error occured: ' + error);
+        //         startOperationDialogue();
+        //     });
     }
 });
 
@@ -103,16 +110,18 @@ async function connectArduino() {
                 onSerialPortData = (data) => {
                     //console.log(data);
                     var buffer;
-                    if(typeof(data)=="string"){
+                    if (typeof (data) == "string") {
                         buffer = Buffer.from(data);
                         if (buffer[buffer.length - 1] == 13 || buffer[buffer.length - 1] == 10) data = data.substring(0, data.length - 1);
-                    }else{
+                    } else {
                         buffer = data;
                         data = data.toString();
                     }
                     if (data == connectionResponseString) finish(true);
                 }
-                connection.on('data', function(data) { onSerialPortData(data); });
+                connection.on('data', function (data) {
+                    onSerialPortData(data);
+                });
                 connection.on('open', () => {
                     printMessage('opened port ' + connection.path);
                     setTimeout(() => {
@@ -155,9 +164,8 @@ async function connectArduino() {
 async function sendToMachine(command) {
     return new Promise((resolve, reject) => {
         if (manualMode) {
-            (function prompt() {
+            function prompt() {
                 printMessage(command);
-                
                 rl.question("> ", (input) => {
                     if (input == 'r') resolve();
                     else if (input == 'e') reject('opearationFailed');
@@ -166,10 +174,11 @@ async function sendToMachine(command) {
                         prompt();
                     }
                 });
-            })();
+            };
+            prompt();
         } else {
             onSerialPortData = (data) => {
-                if(typeof(data)!="string") data = data.toString();
+                if (typeof (data) != "string") data = data.toString();
                 var buffer = Buffer.from(data);
                 for (let i = 0; i < buffer.length; i++) {
                     let chr = buffer[i];
