@@ -3,8 +3,8 @@ var connection = {
     host: 'localhost',
     port: 5432,
     database: 'autostorage',
-    user: 'autostorage',
-    password: '987412365node'
+    user: '',
+    password: ''
     //ssl: true
 }
 var database = postgre(connection);
