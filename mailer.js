@@ -2,8 +2,8 @@ var nodemailer = require('nodemailer');
 var fs = require('fs');
 var HTMLparser = require('node-html-parser');
 var serverEmailUser = {
-    user: 'mailer@autostorage.online',
-    pass: '48N.GN)0GoK#'
+    user: '',
+    pass: ''
 };
 
 module.exports.sendEmail = function (subject, recipients, html, content) {
